@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<FindBugsFilter xmlns="https://github.com/spotbugs/filter/3.0.0">
+
+  <Match>
+    <Class name="~com\.io7m\.blackthorne\..+\$InitShim"/>
+    <Bug pattern="PME_POOR_MANS_ENUM"/>
+  </Match>
+
+  <Match>
+    <Class name="~com\.io7m\.blackthorne\..+\$Builder"/>
+    <Or>
+      <Bug pattern="DLS_DEAD_LOCAL_STORE"/>
+      <Bug pattern="ITC_INHERITANCE_TYPE_CHECKING"/>
+      <Bug pattern="PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS"/>
+      <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD"/>
+    </Or>
+  </Match>
+
+  <!-- These are deliberately empty methods! -->
+  <Match>
+    <Class name="com.io7m.blackthorne.api.BTContentHandlerAbstract"/>
+    <Bug pattern="ACEM_ABSTRACT_CLASS_EMPTY_METHODS"/>
+  </Match>
+
+  <!-- Function.identity() doesn't allow for variance. -->
+  <Match>
+    <Class name="com.io7m.blackthorne.api.Blackthorne"/>
+    <Method name="widen"/>
+    <Bug pattern="FII_USE_FUNCTION_IDENTITY"/>
+  </Match>
+
+  <!-- Used to assist with type inference. -->
+  <Match>
+    <Class name="com.io7m.blackthorne.api.Blackthorne"/>
+    <Method name="versionedDispatching"/>
+    <Bug pattern="UP_UNUSED_PARAMETER"/>
+  </Match>
+
+  <!-- This class is entirely convenience methods. -->
+  <Match>
+    <Class name="com.io7m.blackthorne.api.Blackthorne"/>
+    <Bug pattern="OPM_OVERLY_PERMISSIVE_METHOD"/>
+  </Match>
+
+  <!-- This is a documented API method. -->
+  <Match>
+    <Class name="com.io7m.blackthorne.api.BTVersionedDispatchingHandler"/>
+    <Method name="failed"/>
+    <Bug pattern="OPM_OVERLY_PERMISSIVE_METHOD"/>
+  </Match>
+
+  <Match>
+    <Or>
+      <Class name="com.io7m.blackthorne.api.BTParseError"/>
+      <Class name="com.io7m.blackthorne.api.BTParseError"/>
+    </Or>
+  </Match>
+
+  <Match>
+    <Method name="builder"/>
+    <Bug pattern="OPM_OVERLY_PERMISSIVE_METHOD"/>
+  </Match>
+
+  <Match>
+    <Or>
+      <Bug pattern="OCP_OVERLY_CONCRETE_PARAMETER"/>
+      <Bug pattern="IMC_IMMATURE_CLASS_NO_TOSTRING"/>
+      <Bug pattern="CRLF_INJECTION_LOGS"/>
+    </Or>
+  </Match>
+
+</FindBugsFilter>

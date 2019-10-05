@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:ts="urn:tests"
+            elementFormDefault="qualified"
+            attributeFormDefault="qualified"
+            targetNamespace="urn:tests">
+
+  <xsd:element name="int">
+    <xsd:simpleType>
+      <xsd:restriction base="xsd:integer"/>
+    </xsd:simpleType>
+  </xsd:element>
+
+  <xsd:element name="double">
+    <xsd:simpleType>
+      <xsd:restriction base="xsd:double"/>
+    </xsd:simpleType>
+  </xsd:element>
+
+  <xsd:element name="byte">
+    <xsd:simpleType>
+      <xsd:restriction base="xsd:byte"/>
+    </xsd:simpleType>
+  </xsd:element>
+
+  <xsd:element name="choice">
+    <xsd:complexType>
+      <xsd:choice minOccurs="1" maxOccurs="1">
+        <xsd:element ref="ts:byte"/>
+        <xsd:element ref="ts:double"/>
+        <xsd:element ref="ts:int"/>
+      </xsd:choice>
+    </xsd:complexType>
+  </xsd:element>
+
+  <xsd:element name="choices">
+    <xsd:complexType>
+      <xsd:sequence minOccurs="0" maxOccurs="unbounded">
+        <xsd:element ref="ts:choice"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+
+</xsd:schema>
