@@ -16,22 +16,23 @@
 
 package com.io7m.blackthorne.tests;
 
-import com.io7m.blackthorne.api.BTAcceptCharacters;
-import com.io7m.blackthorne.api.BTContentHandlerAbstract;
-import com.io7m.blackthorne.api.BTContentHandlerConstructorType;
-import com.io7m.blackthorne.api.BTMessages;
+import com.io7m.blackthorne.api.BTContentHandler;
+import com.io7m.blackthorne.api.BTElementHandlerConstructorType;
+import com.io7m.blackthorne.api.BTElementHandlerType;
+import com.io7m.blackthorne.api.BTElementParsingContextType;
+import com.io7m.blackthorne.api.BTIgnoreUnrecognizedElements;
 import com.io7m.blackthorne.api.BTParseError;
-import com.io7m.blackthorne.api.BTVersionedDispatchingHandler;
+import com.io7m.blackthorne.api.BTQualifiedName;
 import com.io7m.blackthorne.api.Blackthorne;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
-import org.xml.sax.ext.Locator2;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.SAXParserFactory;
@@ -40,7 +41,10 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Objects;
+
+import static com.io7m.blackthorne.api.BTIgnoreUnrecognizedElements.DO_NOT_IGNORE_UNRECOGNIZED_ELEMENTS;
+import static com.io7m.blackthorne.api.BTIgnoreUnrecognizedElements.IGNORE_UNRECOGNIZED_ELEMENTS;
 
 /**
  * Tests for the API.
@@ -48,6 +52,9 @@ import java.util.Optional;
 
 public final class BlackthorneTest
 {
+  private static final Logger LOG = LoggerFactory.getLogger(BlackthorneTest.class);
+  private ArrayList<BTParseError> errors;
+
   private static XMLReader createReader()
     throws Exception
   {
@@ -72,6 +79,19 @@ public final class BlackthorneTest
     return source;
   }
 
+  @BeforeEach
+  public void testSetup()
+  {
+    this.errors = new ArrayList<BTParseError>();
+  }
+
+  private void logError(
+    final BTParseError error)
+  {
+    LOG.debug("error: {}: ", error, error.exception().orElse(null));
+    this.errors.add(error);
+  }
+
   /**
    * A document that doesn't contain a usable schema declaration is unusable.
    *
@@ -82,9 +102,8 @@ public final class BlackthorneTest
   public void testNoSchema()
     throws Exception
   {
-    final var errors = new ArrayList<BTParseError>();
     final var handler =
-      new BTVersionedDispatchingHandler<Integer>(URI.create("urn:text"), errors::add, Map.of());
+      new BTContentHandler<Integer>(URI.create("urn:text"), this::logError, Map.of());
 
     final var reader = createReader();
     reader.setContentHandler(handler);
@@ -92,12 +111,11 @@ public final class BlackthorneTest
     reader.parse(resource("no_namespace.xml"));
 
     Assertions.assertTrue(handler.failed());
-    Assertions.assertThrows(IllegalStateException.class, handler::result);
-    Assertions.assertEquals(1, errors.size());
+    Assertions.assertEquals(1, this.errors.size());
 
     {
-      final var error = errors.remove(0);
-      Assertions.assertTrue(error.message().startsWith(BTMessages.format("errorNoUsableNamespace")));
+      final var error = this.errors.remove(0);
+      Assertions.assertTrue(error.message().contains("not allowed as a root element"));
     }
   }
 
@@ -111,9 +129,8 @@ public final class BlackthorneTest
   public void testUnknownSchema()
     throws Exception
   {
-    final var errors = new ArrayList<BTParseError>();
     final var handler =
-      new BTVersionedDispatchingHandler<Integer>(URI.create("urn:text"), errors::add, Map.of());
+      new BTContentHandler<Integer>(URI.create("urn:text"), this::logError, Map.of());
 
     final var reader = createReader();
     reader.setContentHandler(handler);
@@ -121,17 +138,69 @@ public final class BlackthorneTest
     reader.parse(resource("unknown_namespace.xml"));
 
     Assertions.assertTrue(handler.failed());
-    Assertions.assertThrows(IllegalStateException.class, handler::result);
-    Assertions.assertEquals(2, errors.size());
+    Assertions.assertEquals(1, this.errors.size());
 
     {
-      final var error = errors.remove(0);
-      Assertions.assertTrue(error.message().startsWith("Unrecognized"));
+      final var error = this.errors.remove(0);
+      Assertions.assertTrue(error.message().contains("not allowed as a root element"));
     }
+  }
+
+  /**
+   * An invalid document won't be parsed.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testInvalid0()
+    throws Exception
+  {
+    final var handler =
+      BTContentHandler.<List<Number>>builder()
+        .addHandler("urn:tests", "choices", ChoicesHandler::new)
+        .build(URI.create("urn:text"), this::logError);
+
+    final var reader = createReader();
+    reader.setContentHandler(handler);
+    reader.setErrorHandler(handler);
+    reader.parse(resource("not_valid.xml"));
+
+    Assertions.assertTrue(handler.failed());
+    Assertions.assertEquals(1, this.errors.size());
 
     {
-      final var error = errors.remove(0);
-      Assertions.assertTrue(error.message().startsWith(BTMessages.format("errorNoUsableNamespace")));
+      final var error = this.errors.remove(0);
+      Assertions.assertTrue(error.message().contains("not allowed as a root element"));
+    }
+  }
+
+  /**
+   * An invalid document won't be parsed.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testInvalid1()
+    throws Exception
+  {
+    final var handler =
+      BTContentHandler.<Number>builder()
+        .addHandler("urn:tests", "int", IntHandler::new)
+        .build(URI.create("urn:text"), this::logError);
+
+    final var reader = createReader();
+    reader.setContentHandler(handler);
+    reader.setErrorHandler(handler);
+    reader.parse(resource("int_invalid.xml"));
+
+    Assertions.assertTrue(handler.failed());
+    Assertions.assertEquals(1, this.errors.size());
+
+    {
+      final var error = this.errors.remove(0);
+      Assertions.assertTrue(error.message().contains("does not recognize this element"));
     }
   }
 
@@ -145,12 +214,13 @@ public final class BlackthorneTest
   public void testInteger0()
     throws Exception
   {
-    final var errors = new ArrayList<BTParseError>();
+    final Map<BTQualifiedName, BTElementHandlerConstructorType<?, BigInteger>> handlers =
+      Map.ofEntries(
+        Map.entry(BTQualifiedName.of("urn:tests", "int"), IntHandler::new)
+      );
 
     final var handler =
-      Blackthorne.<Number>versionedDispatching()
-        .addHandler("urn:tests", Blackthorne.widenConstructor(IntHandler::new))
-        .build(URI.create("urn:text"), errors::add);
+      new BTContentHandler<>(URI.create("urn:text"), this::logError, handlers);
 
     final var reader = createReader();
     reader.setContentHandler(handler);
@@ -158,9 +228,10 @@ public final class BlackthorneTest
     reader.parse(resource("int.xml"));
 
     Assertions.assertFalse(handler.failed());
-    Assertions.assertEquals(0, errors.size());
-    Assertions.assertEquals(BigInteger.valueOf(23L), handler.result());
+    Assertions.assertEquals(0, this.errors.size());
+    Assertions.assertEquals(BigInteger.valueOf(23L), handler.result().get());
   }
+
 
   /**
    * Integer values are parsed correctly.
@@ -169,78 +240,38 @@ public final class BlackthorneTest
    */
 
   @Test
-  public void testInteger1()
+  public void testIntegerAttr0()
     throws Exception
   {
-    final var errors = new ArrayList<BTParseError>();
+    final var intAttr =
+      Blackthorne.forScalarAttribute("urn:tests", "intA", BlackthorneTest::parseIntAttribute);
 
     final var handler =
-      Blackthorne.versionedDispatching(Number.class)
-        .addHandler("urn:tests", Blackthorne.forScalar("int", BlackthorneTest::parseInteger))
-        .build(URI.create("urn:text"), errors::add);
+      BTContentHandler.<Number>builder()
+        .addHandler("urn:tests", "intA", intAttr)
+        .build(URI.create("urn:text"), this::logError);
 
     final var reader = createReader();
     reader.setContentHandler(handler);
     reader.setErrorHandler(handler);
-    reader.parse(resource("int.xml"));
+    reader.parse(resource("intA.xml"));
 
     Assertions.assertFalse(handler.failed());
-    Assertions.assertEquals(0, errors.size());
-    Assertions.assertEquals(BigInteger.valueOf(23L), handler.result());
+    Assertions.assertEquals(0, this.errors.size());
+    Assertions.assertEquals(BigInteger.valueOf(23L), handler.result().get());
   }
 
-  /**
-   * Byte values are parsed correctly.
-   *
-   * @throws Exception On errors
-   */
-
-  @Test
-  public void testByte0()
-    throws Exception
+  private static Number parseIntAttribute(
+    final BTElementParsingContextType context,
+    final Attributes attributes)
+    throws SAXParseException
   {
-    final var errors = new ArrayList<BTParseError>();
-
-    final var handler =
-      BTVersionedDispatchingHandler.<Number>builder()
-        .addHandler("urn:tests", Blackthorne.widenConstructor(ByteHandler::new))
-        .build(URI.create("urn:text"), errors::add);
-
-    final var reader = createReader();
-    reader.setContentHandler(handler);
-    reader.setErrorHandler(handler);
-    reader.parse(resource("byte.xml"));
-
-    Assertions.assertFalse(handler.failed());
-    Assertions.assertEquals(0, errors.size());
-    Assertions.assertEquals(Byte.valueOf((byte) 10), handler.result());
-  }
-
-  /**
-   * Byte values are parsed correctly.
-   *
-   * @throws Exception On errors
-   */
-
-  @Test
-  public void testByte1()
-    throws Exception
-  {
-    final var errors = new ArrayList<BTParseError>();
-
-    final var handler =
-      BTVersionedDispatchingHandler.<Number>builder()
-        .addHandler("urn:tests", Blackthorne.forScalar("byte", BlackthorneTest::parseByte))
-        .build(URI.create("urn:text"), errors::add);
-
-    final var reader = createReader();
-    reader.setContentHandler(handler);
-    reader.setErrorHandler(handler);
-    reader.parse(resource("byte.xml"));
-
-    Assertions.assertFalse(handler.failed());
-    Assertions.assertEquals(0, errors.size());
-    Assertions.assertEquals(Byte.valueOf((byte) 10), handler.result());
+    try {
+      final var text = attributes.getValue("urn:tests", "value").trim();
+      return new BigInteger(text);
+    } catch (final Exception e) {
+      throw context.parseException(e);
+    }
   }
 
   /**
@@ -253,12 +284,13 @@ public final class BlackthorneTest
   public void testDouble0()
     throws Exception
   {
-    final var errors = new ArrayList<BTParseError>();
+    final Map<BTQualifiedName, BTElementHandlerConstructorType<?, Double>> handlers =
+      Map.ofEntries(
+        Map.entry(BTQualifiedName.of("urn:tests", "double"), DoubleHandler::new)
+      );
 
     final var handler =
-      BTVersionedDispatchingHandler.<Number>builder()
-        .addHandler("urn:tests", Blackthorne.widenConstructor(DoubleHandler::new))
-        .build(URI.create("urn:text"), errors::add);
+      new BTContentHandler<>(URI.create("urn:text"), this::logError, handlers);
 
     final var reader = createReader();
     reader.setContentHandler(handler);
@@ -266,35 +298,36 @@ public final class BlackthorneTest
     reader.parse(resource("double.xml"));
 
     Assertions.assertFalse(handler.failed());
-    Assertions.assertEquals(0, errors.size());
-    Assertions.assertEquals(Double.valueOf(25.10), handler.result());
+    Assertions.assertEquals(0, this.errors.size());
+    Assertions.assertEquals(Double.valueOf(25.10), handler.result().get());
   }
 
   /**
-   * Double values are parsed correctly.
+   * Byte values are parsed correctly.
    *
    * @throws Exception On errors
    */
 
   @Test
-  public void testDouble1()
+  public void testByte0()
     throws Exception
   {
-    final var errors = new ArrayList<BTParseError>();
+    final Map<BTQualifiedName, BTElementHandlerConstructorType<?, Byte>> handlers =
+      Map.ofEntries(
+        Map.entry(BTQualifiedName.of("urn:tests", "byte"), ByteHandler::new)
+      );
 
     final var handler =
-      BTVersionedDispatchingHandler.<Number>builder()
-        .addHandler("urn:tests", Blackthorne.forScalar("double", BlackthorneTest::parseDouble))
-        .build(URI.create("urn:text"), errors::add);
+      new BTContentHandler<>(URI.create("urn:text"), this::logError, handlers);
 
     final var reader = createReader();
     reader.setContentHandler(handler);
     reader.setErrorHandler(handler);
-    reader.parse(resource("double.xml"));
+    reader.parse(resource("byte.xml"));
 
     Assertions.assertFalse(handler.failed());
-    Assertions.assertEquals(0, errors.size());
-    Assertions.assertEquals(Double.valueOf(25.10), handler.result());
+    Assertions.assertEquals(0, this.errors.size());
+    Assertions.assertEquals(Byte.valueOf((byte) 10), handler.result().get());
   }
 
   /**
@@ -307,12 +340,13 @@ public final class BlackthorneTest
   public void testChoice0()
     throws Exception
   {
-    final var errors = new ArrayList<BTParseError>();
+    final Map<BTQualifiedName, BTElementHandlerConstructorType<?, Number>> handlers =
+      Map.ofEntries(
+        Map.entry(BTQualifiedName.of("urn:tests", "choice"), ChoiceHandler::new)
+      );
 
     final var handler =
-      BTVersionedDispatchingHandler.<Number>builder()
-        .addHandler("urn:tests", ChoiceHandler::new)
-        .build(URI.create("urn:text"), errors::add);
+      new BTContentHandler<>(URI.create("urn:text"), this::logError, handlers);
 
     final var reader = createReader();
     reader.setContentHandler(handler);
@@ -320,8 +354,8 @@ public final class BlackthorneTest
     reader.parse(resource("choice0.xml"));
 
     Assertions.assertFalse(handler.failed());
-    Assertions.assertEquals(0, errors.size());
-    Assertions.assertEquals(BigInteger.valueOf(23L), handler.result());
+    Assertions.assertEquals(0, this.errors.size());
+    Assertions.assertEquals(BigInteger.valueOf(23L), handler.result().get());
   }
 
   /**
@@ -334,12 +368,13 @@ public final class BlackthorneTest
   public void testChoice1()
     throws Exception
   {
-    final var errors = new ArrayList<BTParseError>();
+    final Map<BTQualifiedName, BTElementHandlerConstructorType<?, Number>> handlers =
+      Map.ofEntries(
+        Map.entry(BTQualifiedName.of("urn:tests", "choice"), ChoiceHandler::new)
+      );
 
     final var handler =
-      BTVersionedDispatchingHandler.<Number>builder()
-        .addHandler("urn:tests", ChoiceHandler::new)
-        .build(URI.create("urn:text"), errors::add);
+      new BTContentHandler<>(URI.create("urn:text"), this::logError, handlers);
 
     final var reader = createReader();
     reader.setContentHandler(handler);
@@ -347,8 +382,8 @@ public final class BlackthorneTest
     reader.parse(resource("choice1.xml"));
 
     Assertions.assertFalse(handler.failed());
-    Assertions.assertEquals(0, errors.size());
-    Assertions.assertEquals(Double.valueOf(25.10), handler.result());
+    Assertions.assertEquals(0, this.errors.size());
+    Assertions.assertEquals(Double.valueOf(25.10), handler.result().get());
   }
 
   /**
@@ -361,12 +396,13 @@ public final class BlackthorneTest
   public void testChoice2()
     throws Exception
   {
-    final var errors = new ArrayList<BTParseError>();
+    final Map<BTQualifiedName, BTElementHandlerConstructorType<?, Number>> handlers =
+      Map.ofEntries(
+        Map.entry(BTQualifiedName.of("urn:tests", "choice"), ChoiceHandler::new)
+      );
 
     final var handler =
-      BTVersionedDispatchingHandler.<Number>builder()
-        .addHandler("urn:tests", ChoiceHandler::new)
-        .build(URI.create("urn:text"), errors::add);
+      new BTContentHandler<>(URI.create("urn:text"), this::logError, handlers);
 
     final var reader = createReader();
     reader.setContentHandler(handler);
@@ -374,8 +410,8 @@ public final class BlackthorneTest
     reader.parse(resource("choice2.xml"));
 
     Assertions.assertFalse(handler.failed());
-    Assertions.assertEquals(0, errors.size());
-    Assertions.assertEquals(Byte.valueOf((byte) 10), handler.result());
+    Assertions.assertEquals(0, this.errors.size());
+    Assertions.assertEquals(Byte.valueOf((byte) 10), handler.result().get());
   }
 
   /**
@@ -388,12 +424,13 @@ public final class BlackthorneTest
   public void testChoices0()
     throws Exception
   {
-    final var errors = new ArrayList<BTParseError>();
+    final Map<BTQualifiedName, BTElementHandlerConstructorType<?, List<Number>>> handlers =
+      Map.ofEntries(
+        Map.entry(BTQualifiedName.of("urn:tests", "choices"), ChoicesHandler::new)
+      );
 
     final var handler =
-      BTVersionedDispatchingHandler.<List<Number>>builder()
-        .addHandler("urn:tests", ChoicesHandler::new)
-        .build(URI.create("urn:text"), errors::add);
+      new BTContentHandler<>(URI.create("urn:text"), this::logError, handlers);
 
     final var reader = createReader();
     reader.setContentHandler(handler);
@@ -401,9 +438,9 @@ public final class BlackthorneTest
     reader.parse(resource("choices0.xml"));
 
     Assertions.assertFalse(handler.failed());
-    Assertions.assertEquals(0, errors.size());
+    Assertions.assertEquals(0, this.errors.size());
 
-    final var numbers = handler.result();
+    final var numbers = handler.result().get();
     Assertions.assertEquals(BigInteger.valueOf(23L), numbers.get(0));
     Assertions.assertEquals(Double.valueOf(25.10), numbers.get(1));
     Assertions.assertEquals(Byte.valueOf((byte) 10), numbers.get(2));
@@ -420,28 +457,23 @@ public final class BlackthorneTest
   public void testChoices1()
     throws Exception
   {
-    final var errors = new ArrayList<BTParseError>();
+    final Map<BTQualifiedName, BTElementHandlerConstructorType<?, List<Number>>> handlers =
+      Map.ofEntries(
+        Map.entry(BTQualifiedName.of("urn:tests", "choices"), ChoicesIgnoringHandler::new)
+      );
 
     final var handler =
-      BTVersionedDispatchingHandler.<List<Number>>builder()
-        .addHandler(
-          "urn:tests",
-          Blackthorne.forListPoly(
-            "choices",
-            Map.ofEntries(
-              Map.entry("choice", ChoiceHandler::new)
-            )))
-        .build(URI.create("urn:text"), errors::add);
+      new BTContentHandler<>(URI.create("urn:text"), this::logError, handlers);
 
     final var reader = createReader();
     reader.setContentHandler(handler);
     reader.setErrorHandler(handler);
-    reader.parse(resource("choices0.xml"));
+    reader.parse(resource("choices1.xml"));
 
     Assertions.assertFalse(handler.failed());
-    Assertions.assertEquals(0, errors.size());
+    Assertions.assertEquals(0, this.errors.size());
 
-    final var numbers = handler.result();
+    final var numbers = handler.result().get();
     Assertions.assertEquals(BigInteger.valueOf(23L), numbers.get(0));
     Assertions.assertEquals(Double.valueOf(25.10), numbers.get(1));
     Assertions.assertEquals(Byte.valueOf((byte) 10), numbers.get(2));
@@ -458,14 +490,50 @@ public final class BlackthorneTest
   public void testChoices2()
     throws Exception
   {
-    final var errors = new ArrayList<BTParseError>();
+    final Map<BTQualifiedName, BTElementHandlerConstructorType<?, List<Number>>> handlers =
+      Map.ofEntries(
+        Map.entry(BTQualifiedName.of("urn:tests", "choices"), ChoicesIgnoringHandler::new)
+      );
 
     final var handler =
-      BTVersionedDispatchingHandler.<List<Number>>builder()
-        .addHandler(
-          "urn:tests",
-          Blackthorne.forListMono("choices", "choice", ChoiceHandler::new))
-        .build(URI.create("urn:text"), errors::add);
+      new BTContentHandler<>(URI.create("urn:text"), this::logError, handlers);
+
+    final var reader = createReader();
+    reader.setContentHandler(handler);
+    reader.setErrorHandler(handler);
+    reader.parse(resource("choices2.xml"));
+
+    Assertions.assertFalse(handler.failed());
+    Assertions.assertEquals(0, this.errors.size());
+
+    final var numbers = handler.result().get();
+    Assertions.assertEquals(BigInteger.valueOf(23L), numbers.get(0));
+    Assertions.assertEquals(Double.valueOf(25.10), numbers.get(1));
+    Assertions.assertEquals(Byte.valueOf((byte) 20), numbers.get(2));
+    Assertions.assertEquals(3, numbers.size());
+  }
+
+  /**
+   * Choices values are parsed correctly as scalars.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testChoicesScalars0()
+    throws Exception
+  {
+    final var listHandler =
+      Blackthorne.forListMono(
+        BTQualifiedName.of("urn:tests", "choices"),
+        BTQualifiedName.of("urn:tests", "choice"),
+        ChoiceScalarHandler::new,
+        DO_NOT_IGNORE_UNRECOGNIZED_ELEMENTS);
+
+    final var handler =
+      BTContentHandler.<List<Number>>builder()
+        .addHandler(BTQualifiedName.of("urn:tests", "choices"), listHandler)
+        .build(URI.create("urn:text"), this::logError);
 
     final var reader = createReader();
     reader.setContentHandler(handler);
@@ -473,177 +541,554 @@ public final class BlackthorneTest
     reader.parse(resource("choices0.xml"));
 
     Assertions.assertFalse(handler.failed());
-    Assertions.assertEquals(0, errors.size());
+    Assertions.assertEquals(0, this.errors.size());
 
-    final var numbers = handler.result();
+    final var numbers = handler.result().get();
     Assertions.assertEquals(BigInteger.valueOf(23L), numbers.get(0));
     Assertions.assertEquals(Double.valueOf(25.10), numbers.get(1));
     Assertions.assertEquals(Byte.valueOf((byte) 10), numbers.get(2));
     Assertions.assertEquals(3, numbers.size());
   }
 
-  private static final class ByteHandler extends BTContentHandlerAbstract<Void, Byte>
-  {
-    ByteHandler(
-      final Locator2 inLocator)
-    {
-      super(inLocator, "byte", BTAcceptCharacters.ACCEPT_CHARACTERS);
-    }
+  /**
+   * Choices values are parsed correctly.
+   *
+   * @throws Exception On errors
+   */
 
-    @Override
-    protected void onOverrideCharactersDirectly(
-      final char[] ch,
-      final int start,
-      final int length)
-      throws SAXParseException
-    {
-      try {
-        this.finish(parseByte(this.locator(), ch, start, length));
-      } catch (final Exception e) {
-        throw new SAXParseException(e.getLocalizedMessage(), this.locator(), e);
-      }
-    }
+  @Test
+  public void testChoicesList0()
+    throws Exception
+  {
+    final var listHandler =
+      Blackthorne.forListMono(
+        BTQualifiedName.of("urn:tests", "choices"),
+        BTQualifiedName.of("urn:tests", "choice"),
+        ChoiceHandler::new,
+        DO_NOT_IGNORE_UNRECOGNIZED_ELEMENTS);
+
+    final var handler =
+      new BTContentHandler<>(
+        URI.create("urn:text"),
+        this::logError,
+        Map.of(BTQualifiedName.of("urn:tests", "choices"), listHandler));
+
+    final var reader = createReader();
+    reader.setContentHandler(handler);
+    reader.setErrorHandler(handler);
+    reader.parse(resource("choices0.xml"));
+
+    Assertions.assertFalse(handler.failed());
+    Assertions.assertEquals(0, this.errors.size());
+
+    final var numbers = handler.result().get();
+    Assertions.assertEquals(BigInteger.valueOf(23L), numbers.get(0));
+    Assertions.assertEquals(Double.valueOf(25.10), numbers.get(1));
+    Assertions.assertEquals(Byte.valueOf((byte) 10), numbers.get(2));
+    Assertions.assertEquals(3, numbers.size());
   }
 
-  private static final class IntHandler extends BTContentHandlerAbstract<Void, BigInteger>
+  /**
+   * Choices values are parsed correctly.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testChoicesList1()
+    throws Exception
   {
+    final var listHandler =
+      Blackthorne.forListMono(
+        BTQualifiedName.of("urn:tests", "choices"),
+        BTQualifiedName.of("urn:tests", "choice"),
+        ChoiceIgnoringHandler::new,
+        IGNORE_UNRECOGNIZED_ELEMENTS);
+
+    final var handler =
+      new BTContentHandler<>(
+        URI.create("urn:text"),
+        this::logError,
+        Map.of(BTQualifiedName.of("urn:tests", "choices"), listHandler));
+
+    final var reader = createReader();
+    reader.setContentHandler(handler);
+    reader.setErrorHandler(handler);
+    reader.parse(resource("choices1.xml"));
+
+    Assertions.assertFalse(handler.failed());
+    Assertions.assertEquals(0, this.errors.size());
+
+    final var numbers = handler.result().get();
+    Assertions.assertEquals(BigInteger.valueOf(23L), numbers.get(0));
+    Assertions.assertEquals(Double.valueOf(25.10), numbers.get(1));
+    Assertions.assertEquals(Byte.valueOf((byte) 10), numbers.get(2));
+    Assertions.assertEquals(3, numbers.size());
+  }
+
+  /**
+   * Choices values are parsed correctly.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testChoicesList2()
+    throws Exception
+  {
+    final var listHandler =
+      Blackthorne.forListMono(
+        BTQualifiedName.of("urn:tests", "choices"),
+        BTQualifiedName.of("urn:tests", "choice"),
+        ChoiceIgnoringHandler::new,
+        IGNORE_UNRECOGNIZED_ELEMENTS);
+
+    final var handler =
+      new BTContentHandler<>(
+        URI.create("urn:text"),
+        this::logError,
+        Map.of(BTQualifiedName.of("urn:tests", "choices"), listHandler));
+
+    final var reader = createReader();
+    reader.setContentHandler(handler);
+    reader.setErrorHandler(handler);
+    reader.parse(resource("choices2.xml"));
+
+    Assertions.assertFalse(handler.failed());
+    Assertions.assertEquals(0, this.errors.size());
+
+    final var numbers = handler.result().get();
+    Assertions.assertEquals(BigInteger.valueOf(23L), numbers.get(0));
+    Assertions.assertEquals(Double.valueOf(25.10), numbers.get(1));
+    Assertions.assertEquals(Byte.valueOf((byte) 20), numbers.get(2));
+    Assertions.assertEquals(3, numbers.size());
+  }
+
+  /**
+   * Choices values are parsed correctly.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testChoicesListPoly2()
+    throws Exception
+  {
+    final var listHandler =
+      Blackthorne.forListPoly(
+        BTQualifiedName.of("urn:tests", "choices"),
+        Map.ofEntries(
+          Map.entry(
+            BTQualifiedName.of("urn:tests", "choice"),
+            ChoiceIgnoringHandler::new)
+        ),
+        IGNORE_UNRECOGNIZED_ELEMENTS);
+
+    final var handler =
+      new BTContentHandler<>(
+        URI.create("urn:text"),
+        this::logError,
+        Map.of(BTQualifiedName.of("urn:tests", "choices"), listHandler));
+
+    final var reader = createReader();
+    reader.setContentHandler(handler);
+    reader.setErrorHandler(handler);
+    reader.parse(resource("choices2.xml"));
+
+    Assertions.assertFalse(handler.failed());
+    Assertions.assertEquals(0, this.errors.size());
+
+    final var numbers = handler.result().get();
+    Assertions.assertEquals(BigInteger.valueOf(23L), numbers.get(0));
+    Assertions.assertEquals(Double.valueOf(25.10), numbers.get(1));
+    Assertions.assertEquals(Byte.valueOf((byte) 20), numbers.get(2));
+    Assertions.assertEquals(3, numbers.size());
+  }
+
+  /**
+   * Handlers are functors.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testHandlersAreFunctors0()
+    throws Exception
+  {
+    final var listHandler =
+      Blackthorne.forListMono(
+        BTQualifiedName.of("urn:tests", "choices"),
+        BTQualifiedName.of("urn:tests", "choice"),
+        Blackthorne.mapConstructor(
+          ChoiceIgnoringHandler::new,
+          number -> Double.valueOf(number.doubleValue() * 2.0)),
+        IGNORE_UNRECOGNIZED_ELEMENTS);
+
+    final var handler =
+      new BTContentHandler<>(
+        URI.create("urn:text"),
+        this::logError,
+        Map.of(BTQualifiedName.of("urn:tests", "choices"), listHandler));
+
+    final var reader = createReader();
+    reader.setContentHandler(handler);
+    reader.setErrorHandler(handler);
+    reader.parse(resource("choices0.xml"));
+
+    Assertions.assertFalse(handler.failed());
+    Assertions.assertEquals(0, this.errors.size());
+
+    final var numbers = handler.result().get();
+    Assertions.assertEquals(Double.valueOf(46.0), numbers.get(0).doubleValue());
+    Assertions.assertEquals(Double.valueOf(50.20), numbers.get(1).doubleValue());
+    Assertions.assertEquals(Double.valueOf(20.0), numbers.get(2).doubleValue());
+    Assertions.assertEquals(3, numbers.size());
+  }
+
+  private static final class IntHandler implements BTElementHandlerType<Object, BigInteger>
+  {
+    private BigInteger result;
+
     IntHandler(
-      final Locator2 inLocator)
+      final BTElementParsingContextType context)
     {
-      super(inLocator, "int", BTAcceptCharacters.ACCEPT_CHARACTERS);
+
     }
 
     @Override
-    protected void onOverrideCharactersDirectly(
-      final char[] ch,
-      final int start,
+    public void onCharacters(
+      final BTElementParsingContextType context,
+      final char[] data,
+      final int offset,
       final int length)
       throws SAXParseException
     {
       try {
-        this.finish(parseInteger(this.locator(), ch, start, length));
+        final var text = String.valueOf(data, offset, length).trim();
+        this.result = new BigInteger(text);
       } catch (final Exception e) {
-        throw new SAXParseException(e.getLocalizedMessage(), this.locator(), e);
+        throw context.parseException(e);
       }
-    }
-  }
-
-  private static final class DoubleHandler extends BTContentHandlerAbstract<Void, Double>
-  {
-    DoubleHandler(
-      final Locator2 inLocator)
-    {
-      super(inLocator, "double", BTAcceptCharacters.ACCEPT_CHARACTERS);
     }
 
     @Override
-    protected void onOverrideCharactersDirectly(
-      final char[] ch,
-      final int start,
-      final int length)
-      throws SAXException
+    public BigInteger onElementFinished(
+      final BTElementParsingContextType context)
     {
-      try {
-        this.finish(parseDouble(this.locator(), ch, start, length));
-      } catch (final Exception e) {
-        throw new SAXParseException(e.getLocalizedMessage(), this.locator(), e);
-      }
+      return this.result;
     }
   }
 
-  private static final class ChoiceHandler extends BTContentHandlerAbstract<Number, Number>
+  private static final class DoubleHandler implements BTElementHandlerType<Object, Double>
   {
-    private static final Logger LOG = LoggerFactory.getLogger(ChoiceHandler.class);
+    private Double result;
+
+    DoubleHandler(
+      final BTElementParsingContextType context)
+    {
+
+    }
+
+    @Override
+    public void onCharacters(
+      final BTElementParsingContextType context,
+      final char[] data,
+      final int offset,
+      final int length)
+      throws SAXParseException
+    {
+      try {
+        final var text = String.valueOf(data, offset, length).trim();
+        this.result = Double.valueOf(text);
+      } catch (final NumberFormatException e) {
+        throw context.parseException(e);
+      }
+    }
+
+    @Override
+    public Double onElementFinished(
+      final BTElementParsingContextType context)
+    {
+      return this.result;
+    }
+  }
+
+  private static final class ByteHandler implements BTElementHandlerType<Object, Byte>
+  {
+    private Byte result;
+
+    ByteHandler(
+      final BTElementParsingContextType context)
+    {
+
+    }
+
+    @Override
+    public void onCharacters(
+      final BTElementParsingContextType context,
+      final char[] data,
+      final int offset,
+      final int length)
+      throws SAXParseException
+    {
+      try {
+        final var text = String.valueOf(data, offset, length).trim();
+        this.result = Byte.valueOf(text);
+      } catch (final NumberFormatException e) {
+        throw context.parseException(e);
+      }
+    }
+
+    @Override
+    public Byte onElementFinished(
+      final BTElementParsingContextType context)
+    {
+      return this.result;
+    }
+  }
+
+  private static final class ChoiceHandler implements BTElementHandlerType<Number, Number>
+  {
+    private Number result;
 
     ChoiceHandler(
-      final Locator2 inLocator)
+      final BTElementParsingContextType context)
     {
-      super(inLocator, "choice", BTAcceptCharacters.DO_NOT_ACCEPT_CHARACTERS);
+
     }
 
     @Override
-    protected Map<String, BTContentHandlerConstructorType<? extends Number>> onOverrideWantChildHandlers()
+    public Map<BTQualifiedName, BTElementHandlerConstructorType<?, ? extends Number>> onChildHandlersRequested(
+      final BTElementParsingContextType context)
     {
       return Map.ofEntries(
-        Map.entry("byte", locator -> new ByteHandler(locator).map(x -> x)),
-        Map.entry("double", locator -> new DoubleHandler(locator).map(x -> x)),
-        Map.entry("int", locator -> new IntHandler(locator).map(x -> x))
+        Map.entry(BTQualifiedName.of("urn:tests", "byte"), ByteHandler::new),
+        Map.entry(BTQualifiedName.of("urn:tests", "double"), DoubleHandler::new),
+        Map.entry(BTQualifiedName.of("urn:tests", "int"), IntHandler::new)
       );
     }
 
     @Override
-    protected void onOverrideChildResultReceived(
-      final String childElement,
-      final Number value)
+    public void onChildValueProduced(
+      final BTElementParsingContextType context,
+      final Number newResult)
     {
-      LOG.debug("onOverrideChildResultReceived: {} {}", childElement, value);
-      this.finish(value);
+      this.result = Objects.requireNonNull(newResult, "result");
+    }
+
+    @Override
+    public Number onElementFinished(final BTElementParsingContextType context)
+    {
+      return this.result;
     }
   }
 
-  private static final class ChoicesHandler extends BTContentHandlerAbstract<Number, List<Number>>
+  private static final class ChoiceScalarHandler implements BTElementHandlerType<Number, Number>
   {
-    private final List<Number> numbers = new ArrayList<>();
+    private Number result;
+
+    ChoiceScalarHandler(
+      final BTElementParsingContextType context)
+    {
+
+    }
+
+    private static Byte parseByte(
+      final BTElementParsingContextType context,
+      final char[] chars,
+      final int offset,
+      final int length)
+      throws SAXParseException
+    {
+      try {
+        return Byte.valueOf(Byte.parseByte(String.valueOf(chars, offset, length)));
+      } catch (final NumberFormatException e) {
+        throw context.parseException(e);
+      }
+    }
+
+    private static Double parseDouble(
+      final BTElementParsingContextType context,
+      final char[] chars,
+      final int offset,
+      final int length)
+      throws SAXParseException
+    {
+      try {
+        return Double.valueOf(Double.parseDouble(String.valueOf(chars, offset, length)));
+      } catch (final NumberFormatException e) {
+        throw context.parseException(e);
+      }
+    }
+
+    private static BigInteger parseInt(
+      final BTElementParsingContextType context,
+      final char[] chars,
+      final int offset,
+      final int length)
+      throws SAXParseException
+    {
+      try {
+        return new BigInteger(String.valueOf(chars, offset, length));
+      } catch (final Exception e) {
+        throw context.parseException(e);
+      }
+    }
+
+    @Override
+    public Map<BTQualifiedName, BTElementHandlerConstructorType<?, ? extends Number>> onChildHandlersRequested(
+      final BTElementParsingContextType context)
+    {
+      final var nameByte =
+        BTQualifiedName.of("urn:tests", "byte");
+      final var nameDouble =
+        BTQualifiedName.of("urn:tests", "double");
+      final var nameInt =
+        BTQualifiedName.of("urn:tests", "int");
+
+      return Map.ofEntries(
+        Map.entry(
+          nameByte,
+          Blackthorne.forScalar("urn:tests", "byte", ChoiceScalarHandler::parseByte)),
+        Map.entry(
+          nameDouble,
+          Blackthorne.forScalar("urn:tests", "double", ChoiceScalarHandler::parseDouble)),
+        Map.entry(
+          nameInt,
+          Blackthorne.forScalar("urn:tests", "int", ChoiceScalarHandler::parseInt))
+      );
+    }
+
+    @Override
+    public void onChildValueProduced(
+      final BTElementParsingContextType context,
+      final Number newResult)
+    {
+      this.result = Objects.requireNonNull(newResult, "result");
+    }
+
+    @Override
+    public Number onElementFinished(final BTElementParsingContextType context)
+    {
+      return this.result;
+    }
+  }
+
+  private static final class ChoiceIgnoringHandler implements BTElementHandlerType<Number, Number>
+  {
+    private Number result;
+
+    ChoiceIgnoringHandler(
+      final BTElementParsingContextType context)
+    {
+
+    }
+
+    @Override
+    public BTIgnoreUnrecognizedElements onShouldIgnoreUnrecognizedElements(
+      final BTElementParsingContextType context)
+    {
+      return IGNORE_UNRECOGNIZED_ELEMENTS;
+    }
+
+    @Override
+    public Map<BTQualifiedName, BTElementHandlerConstructorType<?, ? extends Number>> onChildHandlersRequested(
+      final BTElementParsingContextType context)
+    {
+      return Map.ofEntries(
+        Map.entry(BTQualifiedName.of("urn:tests", "byte"), ByteHandler::new),
+        Map.entry(BTQualifiedName.of("urn:tests", "double"), DoubleHandler::new),
+        Map.entry(BTQualifiedName.of("urn:tests", "int"), IntHandler::new)
+      );
+    }
+
+    @Override
+    public void onChildValueProduced(
+      final BTElementParsingContextType context,
+      final Number newResult)
+    {
+      this.result = Objects.requireNonNull(newResult, "result");
+    }
+
+    @Override
+    public Number onElementFinished(final BTElementParsingContextType context)
+    {
+      return this.result;
+    }
+  }
+
+  private static final class ChoicesHandler implements BTElementHandlerType<Number, List<Number>>
+  {
+    private List<Number> results;
 
     ChoicesHandler(
-      final Locator2 inLocator)
+      final BTElementParsingContextType context)
     {
-      super(inLocator, "choices", BTAcceptCharacters.DO_NOT_ACCEPT_CHARACTERS);
+      this.results = new ArrayList<>();
     }
 
     @Override
-    protected Map<String, BTContentHandlerConstructorType<? extends Number>> onOverrideWantChildHandlers()
+    public Map<BTQualifiedName, BTElementHandlerConstructorType<?, ? extends Number>> onChildHandlersRequested(
+      final BTElementParsingContextType context)
     {
       return Map.ofEntries(
-        Map.entry("choice", locator -> new ChoiceHandler(locator).map(x -> x))
+        Map.entry(BTQualifiedName.of("urn:tests", "choice"), ChoiceHandler::new)
       );
     }
 
     @Override
-    protected Optional<List<Number>> onOverrideElementFinishDirectly(
-      final String namespace,
-      final String name,
-      final String qname)
+    public void onChildValueProduced(
+      final BTElementParsingContextType context,
+      final Number newResult)
     {
-      return Optional.of(this.finish(this.numbers));
+      this.results.add(Objects.requireNonNull(newResult, "result"));
     }
 
     @Override
-    protected void onOverrideChildResultReceived(
-      final String childElement,
-      final Number value)
+    public List<Number> onElementFinished(final BTElementParsingContextType context)
     {
-      this.numbers.add(value);
+      return this.results;
     }
   }
 
-  private static BigInteger parseInteger(
-    final Locator2 locator,
-    final char[] characters,
-    final int offset,
-    final int length)
+  private static final class ChoicesIgnoringHandler implements BTElementHandlerType<Number, List<Number>>
   {
-    final var text = String.valueOf(characters, offset, length).trim();
-    return new BigInteger(text);
-  }
+    private List<Number> results;
 
-  private static Byte parseByte(
-    final Locator2 locator,
-    final char[] characters,
-    final int offset,
-    final int length)
-  {
-    final var text = String.valueOf(characters, offset, length).trim();
-    return Byte.valueOf(Byte.parseByte(text));
-  }
+    ChoicesIgnoringHandler(
+      final BTElementParsingContextType context)
+    {
+      this.results = new ArrayList<>();
+    }
 
-  private static Double parseDouble(
-    final Locator2 locator,
-    final char[] characters,
-    final int offset,
-    final int length)
-  {
-    final var text = String.valueOf(characters, offset, length).trim();
-    return Double.valueOf(text);
+    @Override
+    public BTIgnoreUnrecognizedElements onShouldIgnoreUnrecognizedElements(
+      final BTElementParsingContextType context)
+    {
+      return IGNORE_UNRECOGNIZED_ELEMENTS;
+    }
+
+    @Override
+    public Map<BTQualifiedName, BTElementHandlerConstructorType<?, ? extends Number>> onChildHandlersRequested(
+      final BTElementParsingContextType context)
+    {
+      return Map.ofEntries(
+        Map.entry(BTQualifiedName.of("urn:tests", "choice"), ChoiceIgnoringHandler::new)
+      );
+    }
+
+    @Override
+    public void onChildValueProduced(
+      final BTElementParsingContextType context,
+      final Number newResult)
+    {
+      this.results.add(Objects.requireNonNull(newResult, "result"));
+    }
+
+    @Override
+    public List<Number> onElementFinished(final BTElementParsingContextType context)
+    {
+      return this.results;
+    }
   }
 }

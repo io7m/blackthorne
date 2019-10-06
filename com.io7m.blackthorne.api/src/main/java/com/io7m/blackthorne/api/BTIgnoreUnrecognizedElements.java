@@ -18,20 +18,21 @@
 package com.io7m.blackthorne.api;
 
 /**
- * A specification of whether or not a content handler should receive character data.
+ * A specification of whether or not unrecognized elements should be ignored. For an ignored element
+ * {@code E}, all descendants of {@code E} are also ignored.
  */
 
-public enum BTAcceptCharacters
+public enum BTIgnoreUnrecognizedElements
 {
   /**
-   * The content handler wants to receive character data.
+   * Unrecognized elements will be ignored.
    */
 
-  ACCEPT_CHARACTERS,
+  IGNORE_UNRECOGNIZED_ELEMENTS,
 
   /**
-   * The content handler does not want to receive character data.
+   * Unrecognized elements will not be ignored.
    */
 
-  DO_NOT_ACCEPT_CHARACTERS
+  DO_NOT_IGNORE_UNRECOGNIZED_ELEMENTS
 }

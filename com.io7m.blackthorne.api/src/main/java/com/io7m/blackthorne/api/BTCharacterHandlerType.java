@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Mark Raynsford <code@io7m.com> http://io7m.com
+ * Copyright © 2019 Mark Raynsford <code@io7m.com> http://io7m.com
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,25 +14,36 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
 package com.io7m.blackthorne.api;
 
-import org.xml.sax.ext.Locator2;
+import org.xml.sax.SAXException;
 
 /**
- * A content handler constructor that produces handlers that produce values of type {@code A}
+ * A function that, given a string, returns a {@code T}.
  *
- * @param <A> The type of produced values
+ * @param <T> The type of returned values
  */
 
-public interface BTContentHandlerConstructorType<A>
+public interface BTCharacterHandlerType<T>
 {
   /**
-   * Construct a content handler.
+   * Parse a text value.
    *
-   * @param locator The document locator
+   * @param context    The parsing context
+   * @param characters The character array
+   * @param offset     The offset into the character array of the start of the data
+   * @param length     The number of characters in the data
    *
-   * @return A new content handler
+   * @return A value of {@code T}
+   *
+   * @throws SAXException On errors
    */
 
-  BTContentHandlerType<A> create(Locator2 locator);
+  T parse(
+    BTElementParsingContextType context,
+    char[] characters,
+    int offset,
+    int length)
+    throws SAXException;
 }

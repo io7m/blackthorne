@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Mark Raynsford <code@io7m.com> http://io7m.com
+ * Copyright © 2019 Mark Raynsford <code@io7m.com> http://io7m.com
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,89 +14,97 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
 package com.io7m.blackthorne.api;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
+import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Function;
 
 /**
- * A content handler that simply applies a function to the results of another handler.
+ * A handler that implements {@code fmap} for handlers.
  *
- * @param <A> The type of source values
- * @param <B> The type of target values
+ * @param <A> The type of child values
+ * @param <B> The type of result values
+ * @param <C> The type of result values after a function is applied
  */
 
-public final class BTFunctorHandler<A, B> implements BTContentHandlerType<B>
+public final class BTFunctorHandler<A, B, C> implements BTElementHandlerType<A, C>
 {
-  private final Function<A, B> function;
-  private final BTContentHandlerType<A> handler;
+  private final BTElementHandlerType<A, B> handler;
+  private final Function<B, C> function;
 
   /**
-   * Construct a handler.
+   * Construct a functor handler.
    *
-   * @param in_handler  The original handler
-   * @param in_function The mapping function
+   * @param inHandler  The inner handler
+   * @param inFunction The mapping function
    */
 
   public BTFunctorHandler(
-    final BTContentHandlerType<A> in_handler,
-    final Function<A, B> in_function)
+    final BTElementHandlerType<A, B> inHandler,
+    final Function<B, C> inFunction)
   {
-    this.handler =
-      Objects.requireNonNull(in_handler, "handler");
-    this.function =
-      Objects.requireNonNull(in_function, "function");
+    this.handler = Objects.requireNonNull(inHandler, "handler");
+    this.function = Objects.requireNonNull(inFunction, "function");
   }
 
   @Override
-  public String toString()
+  public Map<BTQualifiedName, BTElementHandlerConstructorType<?, ? extends A>> onChildHandlersRequested(
+    final BTElementParsingContextType context)
   {
-    return new StringBuilder(128)
-      .append("[map ")
-      .append(this.handler)
-      .append(']')
-      .toString();
+    return this.handler.onChildHandlersRequested(context);
   }
 
   @Override
-  public void onElementStarted(
-    final String namespace,
-    final String name,
-    final String qname,
+  public String name()
+  {
+    return String.format("[map %s]", this.handler.name());
+  }
+
+  @Override
+  public BTIgnoreUnrecognizedElements onShouldIgnoreUnrecognizedElements(
+    final BTElementParsingContextType context)
+  {
+    return this.handler.onShouldIgnoreUnrecognizedElements(context);
+  }
+
+  @Override
+  public void onElementStart(
+    final BTElementParsingContextType context,
     final Attributes attributes)
     throws SAXException
   {
-    this.handler.onElementStarted(namespace, name, qname, attributes);
+    this.handler.onElementStart(context, attributes);
   }
 
   @Override
-  public Optional<B> onElementFinished(
-    final String namespace,
-    final String name,
-    final String qname)
+  public void onChildValueProduced(
+    final BTElementParsingContextType context,
+    final A result)
     throws SAXException
   {
-    return this.handler.onElementFinished(namespace, name, qname)
-      .map(this.function);
+    this.handler.onChildValueProduced(context, result);
   }
 
   @Override
   public void onCharacters(
-    final char[] ch,
-    final int start,
+    final BTElementParsingContextType context,
+    final char[] data,
+    final int offset,
     final int length)
     throws SAXException
   {
-    this.handler.onCharacters(ch, start, length);
+    this.handler.onCharacters(context, data, offset, length);
   }
 
   @Override
-  public B get()
+  public C onElementFinished(final BTElementParsingContextType context)
+    throws SAXException
   {
-    return this.function.apply(this.handler.get());
+    return this.function.apply(this.handler.onElementFinished(context));
   }
 }

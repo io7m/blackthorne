@@ -14,21 +14,43 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
+package com.io7m.blackthorne.api;
+
+import com.io7m.immutables.styles.ImmutablesStyleType;
+import org.immutables.value.Value;
+
+import java.util.Comparator;
+import java.util.Objects;
+
 /**
- * Typed XML stream processing (API)
+ * The type of fully-qualified XML element names.
  */
 
-module com.io7m.blackthorne.api
+@ImmutablesStyleType
+@Value.Immutable
+public interface BTQualifiedNameType extends Comparable<BTQualifiedNameType>
 {
-  requires static com.io7m.immutables.style;
-  requires static org.immutables.value;
-  requires static org.osgi.annotation.bundle;
+  /**
+   * @return The namespace URI
+   */
 
-  requires com.io7m.jaffirm.core;
-  requires com.io7m.jlexing.core;
-  requires com.io7m.junreachable.core;
-  requires java.xml;
-  requires org.slf4j;
+  @Value.Parameter
+  String namespaceURI();
 
-  exports com.io7m.blackthorne.api;
+  /**
+   * @return The local name of the element
+   */
+
+  @Value.Parameter
+  String localName();
+
+  @Override
+  default int compareTo(final BTQualifiedNameType other)
+  {
+    Objects.requireNonNull(other, "other");
+    return Comparator.comparing(BTQualifiedNameType::namespaceURI)
+      .thenComparing(BTQualifiedNameType::localName)
+      .compare(this, other);
+  }
 }
