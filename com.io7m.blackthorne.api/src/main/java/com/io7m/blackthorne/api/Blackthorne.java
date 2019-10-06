@@ -17,18 +17,11 @@
 package com.io7m.blackthorne.api;
 
 import com.io7m.junreachable.UnreachableCodeException;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
-import org.xml.sax.ext.Locator2;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
-
-import static com.io7m.blackthorne.api.BTAcceptCharacters.ACCEPT_CHARACTERS;
-import static com.io7m.blackthorne.api.BTAcceptCharacters.DO_NOT_ACCEPT_CHARACTERS;
+import java.util.function.Function;
 
 /**
  * Convenience functions.
@@ -42,67 +35,84 @@ public final class Blackthorne
   }
 
   /**
-   * Construct a new versioned dispatching handler builder.
+   * Functor map for handlers.
    *
-   * @param <T> The type of returned values
+   * @param handler  The handler
+   * @param function A function to apply to the result of handlers produced by {@code constructor}
+   * @param <CT>     The type of child handler values
+   * @param <RT>     The type of result values
+   * @param <RX>     The type of mapped result values
    *
-   * @return A new builder
+   * @return A new handler
    */
 
-  public static <T> BTVersionedDispatchingHandlerBuilderType<T> versionedDispatching()
+  public static <CT, RT, RX> BTElementHandlerType<CT, RX> map(
+    final BTElementHandlerType<CT, RT> handler,
+    final Function<RT, RX> function)
   {
-    return BTVersionedDispatchingHandler.builder();
+    return handler.map(function);
   }
 
   /**
-   * Widen the type of the given content handler. If {@code A <: B}, then any content handler that
-   * produces a value of {@code A} implicitly produces a value of {@code B}.
+   * Type widening for handlers. If {@code RX <: RT}, then any handler that produces a value of
+   * {@code RX} implicitly produces a value of {@code RT}.
    *
-   * @param handler The content handler
-   * @param <B>     The supertype
-   * @param <A>     The subtype
+   * @param handler The handler
+   * @param <CT>    The type of child handler values
+   * @param <RT>    The type of result values
+   * @param <RX>    A subtype of result values
    *
-   * @return A content handler that returns {@code B}
+   * @return A widened handler
    */
 
-  public static <B, A extends B> BTContentHandlerType<B> widen(
-    final BTContentHandlerType<A> handler)
+  @SuppressWarnings("unchecked")
+  public static <CT, RT, RX extends RT> BTElementHandlerType<CT, RT> widen(
+    final BTElementHandlerType<CT, RX> handler)
   {
-    return Objects.requireNonNull(handler, "handler").map(x -> x);
+    return (BTElementHandlerType<CT, RT>) handler;
   }
 
   /**
-   * Widen the type of the given content handler constructor. If {@code A <: B}, then any content
-   * handler that produces a value of {@code A} implicitly produces a value of {@code B}.
+   * Functor map for handler constructors.
    *
-   * @param handler The content handler
-   * @param <B>     The supertype
-   * @param <A>     The subtype
+   * @param constructor The handler constructor
+   * @param function    A function to apply to the result of handlers produced by {@code
+   *                    constructor}
+   * @param <CT>        The type of child handler values
+   * @param <RT>        The type of result values
+   * @param <RX>        The type of mapped result values
    *
-   * @return A content handler constructor that returns {@code B}
+   * @return A new handler constructor
    */
 
-  public static <B, A extends B> BTContentHandlerConstructorType<B> widenConstructor(
-    final BTContentHandlerConstructorType<A> handler)
+  public static <CT, RT, RX> BTElementHandlerConstructorType<CT, RX> mapConstructor(
+    final BTElementHandlerConstructorType<CT, RT> constructor,
+    final Function<RT, RX> function)
   {
-    Objects.requireNonNull(handler, "handler");
-    return locator -> widen(handler.create(locator));
+    return context -> {
+      @SuppressWarnings("unchecked") final var newHandler =
+        (BTElementHandlerType<CT, RT>) constructor.create(context);
+      return (BTElementHandlerType<CT, RX>) map(newHandler, function);
+    };
   }
 
   /**
-   * Create a builder for a versioned dispatching handler. The given class parameter is simply there
-   * to aid type inference and is otherwise ignored.
+   * Type widening for handler constructors. If {@code RX <: RT}, then any handler that produces a
+   * value of {@code RX} implicitly produces a value of {@code RT}.
    *
-   * @param clazz The class
-   * @param <T>   The type of returned values
+   * @param constructor The handler
+   * @param <CT>        The type of child handler values
+   * @param <RT>        The type of result values
+   * @param <RX>        A subtype of result values
    *
-   * @return A builder
+   * @return A widened handler constructor
    */
 
-  public static <T> BTVersionedDispatchingHandlerBuilderType<T> versionedDispatching(
-    final Class<T> clazz)
+  @SuppressWarnings("unchecked")
+  public static <CT, RT, RX extends RT> BTElementHandlerConstructorType<CT, RT> widenConstructor(
+    final BTElementHandlerConstructorType<CT, RX> constructor)
   {
-    return BTVersionedDispatchingHandler.builder();
+    return (BTElementHandlerConstructorType<CT, RT>) constructor;
   }
 
   /**
@@ -116,40 +126,105 @@ public final class Blackthorne
    * @return A content handler constructor
    */
 
-  public static <S> BTContentHandlerConstructorType<S> forScalar(
-    final String elementName,
-    final BTCharacterParserType<S> parser)
+  public static <S> BTElementHandlerConstructorType<?, S> forScalar(
+    final BTQualifiedName elementName,
+    final BTCharacterHandlerType<S> parser)
   {
     Objects.requireNonNull(elementName, "elementName");
     Objects.requireNonNull(parser, "parser");
+    return context -> new BTScalarElementHandler<>(elementName, parser);
+  }
 
-    return locator -> new ScalarHandler<>(locator, elementName, parser);
+  /**
+   * A convenience function for constructing content handlers that produce a scalar value from the
+   * text content of a single XML element.
+   *
+   * @param namespaceURI The namespace of the element
+   * @param localName    The local element name
+   * @param parser       A function that receives text and returns a value of type {@code S}
+   * @param <S>          The type of returned scalar values
+   *
+   * @return A content handler constructor
+   */
+
+  public static <S> BTElementHandlerConstructorType<?, S> forScalar(
+    final String namespaceURI,
+    final String localName,
+    final BTCharacterHandlerType<S> parser)
+  {
+    Objects.requireNonNull(namespaceURI, "namespaceURI");
+    Objects.requireNonNull(localName, "localName");
+    Objects.requireNonNull(parser, "parser");
+    return forScalar(BTQualifiedName.of(namespaceURI, localName), parser);
+  }
+
+  /**
+   * A convenience function for constructing content handlers that produce a scalar value from the
+   * text content of a single XML element.
+   *
+   * @param elementName The name of the element
+   * @param parser      A function that receives attributes and returns a value of type {@code S}
+   * @param <S>         The type of returned scalar values
+   *
+   * @return A content handler constructor
+   */
+
+  public static <S> BTElementHandlerConstructorType<?, S> forScalarAttribute(
+    final BTQualifiedName elementName,
+    final BTAttributesHandlerType<S> parser)
+  {
+    Objects.requireNonNull(elementName, "elementName");
+    Objects.requireNonNull(parser, "parser");
+    return context -> new BTScalarAttributeHandler<>(elementName, parser);
+  }
+
+  /**
+   * A convenience function for constructing content handlers that produce a scalar value from the
+   * text content of a single XML element.
+   *
+   * @param namespaceURI The namespace of the element
+   * @param localName    The local element name
+   * @param parser       A function that receives attributes and returns a value of type {@code S}
+   * @param <S>          The type of returned scalar values
+   *
+   * @return A content handler constructor
+   */
+
+  public static <S> BTElementHandlerConstructorType<?, S> forScalarAttribute(
+    final String namespaceURI,
+    final String localName,
+    final BTAttributesHandlerType<S> parser)
+  {
+    Objects.requireNonNull(namespaceURI, "namespaceURI");
+    Objects.requireNonNull(localName, "localName");
+    Objects.requireNonNull(parser, "parser");
+    return forScalarAttribute(BTQualifiedName.of(namespaceURI, localName), parser);
   }
 
   /**
    * A convenience function for constructing content handlers that produce lists of values from the
    * child elements of a single element. All child elements are expected to be of the same type.
    *
-   * @param elementName      The name of the element
-   * @param childElementName The name of the child element
-   * @param itemHandler      A handler for child elements
-   * @param <S>              The type of returned scalar values
+   * @param elementName        The name of the element
+   * @param childElementName   The name of the child element
+   * @param itemHandler        A handler for child elements
+   * @param ignoreUnrecognized Whether or not unrecognized child elements should be ignored
+   * @param <S>                The type of returned scalar values
    *
    * @return A content handler constructor
    */
 
-  public static <S> BTContentHandlerConstructorType<List<S>> forListMono(
-    final String elementName,
-    final String childElementName,
-    final BTContentHandlerConstructorType<? extends S> itemHandler)
+  public static <S> BTElementHandlerConstructorType<S, List<S>> forListMono(
+    final BTQualifiedName elementName,
+    final BTQualifiedName childElementName,
+    final BTElementHandlerConstructorType<?, ? extends S> itemHandler,
+    final BTIgnoreUnrecognizedElements ignoreUnrecognized)
   {
     Objects.requireNonNull(elementName, "elementName");
     Objects.requireNonNull(childElementName, "childElementName");
-
-    return locator -> {
-      final List<S> childElements = new ArrayList<>();
-      return new ListHandler<>(locator, elementName, childElementName, itemHandler, childElements);
-    };
+    Objects.requireNonNull(itemHandler, "itemHandler");
+    return context ->
+      new BTListMonoHandler<>(elementName, childElementName, itemHandler, ignoreUnrecognized);
   }
 
   /**
@@ -157,144 +232,21 @@ public final class Blackthorne
    * child elements of a single element. Child elements may be of different types, but values
    * produced by the content handlers for the child elements must have a common supertype.
    *
-   * @param elementName  The name of the element
-   * @param itemHandlers Handlers for child elements
-   * @param <S>          The type of returned scalar values
+   * @param elementName        The name of the element
+   * @param itemHandlers       Handlers for child elements
+   * @param ignoreUnrecognized Whether or not unrecognized child elements should be ignored
+   * @param <S>                The type of returned scalar values
    *
    * @return A content handler constructor
    */
 
-  public static <S> BTContentHandlerConstructorType<List<S>> forListPoly(
-    final String elementName,
-    final Map<String, BTContentHandlerConstructorType<? extends S>> itemHandlers)
+  public static <S> BTElementHandlerConstructorType<S, List<S>> forListPoly(
+    final BTQualifiedName elementName,
+    final Map<BTQualifiedName, BTElementHandlerConstructorType<?, ? extends S>> itemHandlers,
+    final BTIgnoreUnrecognizedElements ignoreUnrecognized)
   {
     Objects.requireNonNull(elementName, "elementName");
-
-    final var itemHandlersCaptured =
-      Map.copyOf(Objects.requireNonNull(itemHandlers, "itemHandlers"));
-
-    return locator -> {
-      final List<S> childElements = new ArrayList<>();
-      return new ListPolyHandler<>(locator, elementName, itemHandlersCaptured, childElements);
-    };
-  }
-
-  private static final class ScalarHandler<S> extends BTContentHandlerAbstract<Void, S>
-  {
-    private final Locator2 locator;
-    private final BTCharacterParserType<S> parser;
-
-    private ScalarHandler(
-      final Locator2 inLocator,
-      final String elementName,
-      final BTCharacterParserType<S> inParser)
-    {
-      super(inLocator, elementName, ACCEPT_CHARACTERS);
-      this.locator = Objects.requireNonNull(inLocator, "locator");
-      this.parser = Objects.requireNonNull(inParser, "parser");
-    }
-
-    @Override
-    protected void onOverrideCharactersDirectly(
-      final char[] ch,
-      final int start,
-      final int length)
-      throws SAXException
-    {
-      try {
-        this.finish(this.parser.parse(this.locator, ch, start, length));
-      } catch (final Exception e) {
-        throw new SAXParseException(e.getLocalizedMessage(), this.locator(), e);
-      }
-    }
-  }
-
-  private static final class ListHandler<S> extends BTContentHandlerAbstract<S, List<S>>
-  {
-    private final String childElementName;
-    private final BTContentHandlerConstructorType<? extends S> itemHandler;
-    private final List<S> childElements;
-
-    private ListHandler(
-      final Locator2 locator,
-      final String elementName,
-      final String inChildElementName,
-      final BTContentHandlerConstructorType<? extends S> inItemHandler,
-      final List<S> inChildElements)
-    {
-      super(locator, elementName, DO_NOT_ACCEPT_CHARACTERS);
-
-      this.childElementName =
-        Objects.requireNonNull(inChildElementName, "childElementName");
-      this.itemHandler =
-        Objects.requireNonNull(inItemHandler, "itemHandler");
-      this.childElements =
-        Objects.requireNonNull(inChildElements, "childElements");
-    }
-
-    @Override
-    protected Map<String, BTContentHandlerConstructorType<? extends S>> onOverrideWantChildHandlers()
-    {
-      return Map.of(this.childElementName, this.itemHandler);
-    }
-
-    @Override
-    protected Optional<List<S>> onOverrideElementFinishDirectly(
-      final String namespace,
-      final String name,
-      final String qname)
-    {
-      return Optional.of(this.finish(this.childElements));
-    }
-
-    @Override
-    protected void onOverrideChildResultReceived(
-      final String childElement,
-      final S value)
-    {
-      this.childElements.add(value);
-    }
-  }
-
-  private static final class ListPolyHandler<S> extends BTContentHandlerAbstract<S, List<S>>
-  {
-    private final Map<String, BTContentHandlerConstructorType<? extends S>> itemHandlersCaptured;
-    private final List<S> childElements;
-
-    private ListPolyHandler(
-      final Locator2 locator,
-      final String elementName,
-      final Map<String, BTContentHandlerConstructorType<? extends S>> inItemHandlersCaptured,
-      final List<S> inChildElements)
-    {
-      super(locator, elementName, DO_NOT_ACCEPT_CHARACTERS);
-      this.itemHandlersCaptured =
-        Objects.requireNonNull(inItemHandlersCaptured, "inItemHandlersCaptured");
-      this.childElements =
-        Objects.requireNonNull(inChildElements, "inChildElements");
-    }
-
-    @Override
-    protected Map<String, BTContentHandlerConstructorType<? extends S>> onOverrideWantChildHandlers()
-    {
-      return this.itemHandlersCaptured;
-    }
-
-    @Override
-    protected Optional<List<S>> onOverrideElementFinishDirectly(
-      final String namespace,
-      final String name,
-      final String qname)
-    {
-      return Optional.of(this.finish(this.childElements));
-    }
-
-    @Override
-    protected void onOverrideChildResultReceived(
-      final String childElement,
-      final S value)
-    {
-      this.childElements.add(value);
-    }
+    Objects.requireNonNull(itemHandlers, "itemHandlers");
+    return context -> new BTListPolyHandler<S>(elementName, itemHandlers, ignoreUnrecognized);
   }
 }

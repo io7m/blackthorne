@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<choices xmlns="urn:tests">
+  <comment>A comment.</comment>
+  <choice>
+    <comment>A comment.</comment>
+    <int>23</int>
+  </choice>
+  <comment>A comment.</comment>
+  <choice>
+    <comment>A comment.</comment>
+    <double>25.10</double>
+  </choice>
+  <comment>A comment.</comment>
+  <choice>
+    <comment>A comment.</comment>
+    <byte>10</byte>
+  </choice>
+  <comment>A comment.</comment>
+</choices>

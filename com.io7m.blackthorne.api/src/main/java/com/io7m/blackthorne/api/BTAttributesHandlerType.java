@@ -17,24 +17,22 @@
 
 package com.io7m.blackthorne.api;
 
+import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
-import org.xml.sax.ext.Locator2;
 
 /**
- * A function that, given a string, returns a {@code T}.
+ * A function that, given a set of attributes, returns a {@code T}.
  *
  * @param <T> The type of returned values
  */
 
-public interface BTCharacterParserType<T>
+public interface BTAttributesHandlerType<T>
 {
   /**
-   * Parse a text value.
+   * Parse attributes.
    *
-   * @param locator    The document locator
-   * @param characters The character array
-   * @param offset     The offset into the character array of the start of the data
-   * @param length     The number of characters in the data
+   * @param context    The parsing context
+   * @param attributes The attributes
    *
    * @return A value of {@code T}
    *
@@ -42,9 +40,7 @@ public interface BTCharacterParserType<T>
    */
 
   T parse(
-    Locator2 locator,
-    char[] characters,
-    int offset,
-    int length)
+    BTElementParsingContextType context,
+    Attributes attributes)
     throws SAXException;
 }

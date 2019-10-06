@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<choices xmlns="urn:tests">
+  <choice>
+    <int>23</int>
+  </choice>
+  <choice>
+    <double>25.10</double>
+  </choice>
+  <choice>
+    <ignoredContainingChoice>
+      <choice>
+        <byte>10</byte>
+      </choice>
+    </ignoredContainingChoice>
+    <byte>20</byte>
+  </choice>
+</choices>

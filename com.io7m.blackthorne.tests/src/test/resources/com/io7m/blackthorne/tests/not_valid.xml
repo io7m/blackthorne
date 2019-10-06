@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<not-valid xmlns="urn:tests">
+  <really-not-valid>23</really-not-valid>
+</not-valid>

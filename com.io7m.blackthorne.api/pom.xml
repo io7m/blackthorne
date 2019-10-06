@@ -8,7 +8,7 @@
   <parent>
     <artifactId>com.io7m.blackthorne</artifactId>
     <groupId>com.io7m.blackthorne</groupId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
   </parent>
 
   <artifactId>com.io7m.blackthorne.api</artifactId>
@@ -30,6 +30,10 @@
     <dependency>
       <groupId>com.io7m.jlexing</groupId>
       <artifactId>com.io7m.jlexing.core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.io7m.jaffirm</groupId>
+      <artifactId>com.io7m.jaffirm.core</artifactId>
     </dependency>
 
     <dependency>

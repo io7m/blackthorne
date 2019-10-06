@@ -14,21 +14,29 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
+package com.io7m.blackthorne.api;
+
+import org.xml.sax.SAXParseException;
+import org.xml.sax.ext.Locator2;
+
 /**
- * Typed XML stream processing (API)
+ * The context of a parsing operation.
  */
 
-module com.io7m.blackthorne.api
+public interface BTElementParsingContextType
 {
-  requires static com.io7m.immutables.style;
-  requires static org.immutables.value;
-  requires static org.osgi.annotation.bundle;
+  /**
+   * @return The current SAX document locator
+   */
 
-  requires com.io7m.jaffirm.core;
-  requires com.io7m.jlexing.core;
-  requires com.io7m.junreachable.core;
-  requires java.xml;
-  requires org.slf4j;
+  Locator2 documentLocator();
 
-  exports com.io7m.blackthorne.api;
+  /**
+   * @param e The exception cause
+   *
+   * @return A SAX parse exception based on the given exception
+   */
+
+  SAXParseException parseException(Exception e);
 }

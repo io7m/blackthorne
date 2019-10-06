@@ -8,7 +8,7 @@
   <parent>
     <artifactId>com.io7m.blackthorne</artifactId>
     <groupId>com.io7m.blackthorne</groupId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
   </parent>
 
   <artifactId>com.io7m.blackthorne.tests</artifactId>
@@ -42,6 +42,10 @@
       <artifactId>com.io7m.junreachable.core</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>net.jqwik</groupId>
+      <artifactId>jqwik</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
