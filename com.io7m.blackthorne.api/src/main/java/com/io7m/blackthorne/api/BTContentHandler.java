@@ -17,19 +17,18 @@
 package com.io7m.blackthorne.api;
 
 import com.io7m.jlexing.core.LexicalPosition;
-import org.xml.sax.Attributes;
-import org.xml.sax.Locator;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
-import org.xml.sax.ext.DefaultHandler2;
-import org.xml.sax.ext.Locator2;
-
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
+import org.xml.sax.Attributes;
+import org.xml.sax.Locator;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
+import org.xml.sax.ext.DefaultHandler2;
+import org.xml.sax.ext.Locator2;
 
 /**
  * A dispatching handler that produces values of type {@code T}. The handler is responsible for
@@ -156,11 +155,7 @@ public final class BTContentHandler<T> extends DefaultHandler2
         .setException(e)
         .setSeverity(BTParseErrorType.Severity.WARNING)
         .setMessage(e.getMessage())
-        .setLexical(LexicalPosition.<URI>builder()
-                      .setColumn(this.locator.getColumnNumber())
-                      .setLine(this.locator.getLineNumber())
-                      .setFile(this.fileURI)
-                      .build())
+        .setLexical(this.currentLexical())
         .build());
   }
 
@@ -174,11 +169,7 @@ public final class BTContentHandler<T> extends DefaultHandler2
         .setException(e)
         .setSeverity(BTParseErrorType.Severity.ERROR)
         .setMessage(e.getMessage())
-        .setLexical(LexicalPosition.<URI>builder()
-                      .setColumn(this.locator.getColumnNumber())
-                      .setLine(this.locator.getLineNumber())
-                      .setFile(this.fileURI)
-                      .build())
+        .setLexical(this.currentLexical())
         .build());
   }
 
@@ -193,13 +184,31 @@ public final class BTContentHandler<T> extends DefaultHandler2
         .setException(e)
         .setSeverity(BTParseErrorType.Severity.ERROR)
         .setMessage(e.getMessage())
-        .setLexical(LexicalPosition.<URI>builder()
-                      .setColumn(this.locator.getColumnNumber())
-                      .setLine(this.locator.getLineNumber())
-                      .setFile(this.fileURI)
-                      .build())
+        .setLexical(this.currentLexical())
         .build());
     throw e;
+  }
+
+  private LexicalPosition<URI> currentLexical()
+  {
+    final LexicalPosition<URI> lexicalPosition;
+    final var locateNow = this.locator;
+    if (locateNow != null) {
+      lexicalPosition =
+        LexicalPosition.<URI>builder()
+          .setColumn(locateNow.getColumnNumber())
+          .setLine(locateNow.getLineNumber())
+          .setFile(this.fileURI)
+          .build();
+    } else {
+      lexicalPosition =
+        LexicalPosition.<URI>builder()
+          .setColumn(0)
+          .setLine(0)
+          .setFile(this.fileURI)
+          .build();
+    }
+    return lexicalPosition;
   }
 
   /**
