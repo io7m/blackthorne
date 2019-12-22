@@ -154,7 +154,7 @@ public final class BTContentHandler<T> extends DefaultHandler2
       BTParseError.builder()
         .setException(e)
         .setSeverity(BTParseErrorType.Severity.WARNING)
-        .setMessage(e.getMessage())
+        .setMessage(messageOrException(e))
         .setLexical(this.currentLexical())
         .build());
   }
@@ -168,7 +168,7 @@ public final class BTContentHandler<T> extends DefaultHandler2
       BTParseError.builder()
         .setException(e)
         .setSeverity(BTParseErrorType.Severity.ERROR)
-        .setMessage(e.getMessage())
+        .setMessage(messageOrException(e))
         .setLexical(this.currentLexical())
         .build());
   }
@@ -183,10 +183,22 @@ public final class BTContentHandler<T> extends DefaultHandler2
       BTParseError.builder()
         .setException(e)
         .setSeverity(BTParseErrorType.Severity.ERROR)
-        .setMessage(e.getMessage())
+        .setMessage(messageOrException(e))
         .setLexical(this.currentLexical())
         .build());
     throw e;
+  }
+
+  private static String messageOrException(
+    final Exception e)
+  {
+    final var messageOrNull = e.getMessage();
+    if (messageOrNull == null) {
+      return String.format(
+        "No error message provided for exception %s",
+        e.getClass().getName());
+    }
+    return messageOrNull;
   }
 
   private LexicalPosition<URI> currentLexical()
