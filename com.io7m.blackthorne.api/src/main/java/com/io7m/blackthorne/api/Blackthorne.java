@@ -16,12 +16,26 @@
 
 package com.io7m.blackthorne.api;
 
+import com.io7m.jlexing.core.LexicalPosition;
 import com.io7m.junreachable.UnreachableCodeException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXParseException;
+import org.xml.sax.XMLReader;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.Callable;
 import java.util.function.Function;
+
+import static com.io7m.blackthorne.api.BTParseErrorType.Severity.ERROR;
 
 /**
  * Convenience functions.
@@ -29,6 +43,9 @@ import java.util.function.Function;
 
 public final class Blackthorne
 {
+  private static final Logger LOG =
+    LoggerFactory.getLogger(Blackthorne.class);
+
   private Blackthorne()
   {
     throw new UnreachableCodeException();
@@ -198,7 +215,9 @@ public final class Blackthorne
     Objects.requireNonNull(namespaceURI, "namespaceURI");
     Objects.requireNonNull(localName, "localName");
     Objects.requireNonNull(parser, "parser");
-    return forScalarAttribute(BTQualifiedName.of(namespaceURI, localName), parser);
+    return forScalarAttribute(
+      BTQualifiedName.of(namespaceURI, localName),
+      parser);
   }
 
   /**
@@ -224,7 +243,11 @@ public final class Blackthorne
     Objects.requireNonNull(childElementName, "childElementName");
     Objects.requireNonNull(itemHandler, "itemHandler");
     return context ->
-      new BTListMonoHandler<>(elementName, childElementName, itemHandler, ignoreUnrecognized);
+      new BTListMonoHandler<>(
+        elementName,
+        childElementName,
+        itemHandler,
+        ignoreUnrecognized);
   }
 
   /**
@@ -247,6 +270,87 @@ public final class Blackthorne
   {
     Objects.requireNonNull(elementName, "elementName");
     Objects.requireNonNull(itemHandlers, "itemHandlers");
-    return context -> new BTListPolyHandler<S>(elementName, itemHandlers, ignoreUnrecognized);
+    return context -> new BTListPolyHandler<S>(
+      elementName,
+      itemHandlers,
+      ignoreUnrecognized);
+  }
+
+  /**
+   * A convenience method to configure and execute a parser.
+   *
+   * @param source       The source URI
+   * @param stream       The input stream
+   * @param xmlReaders   A supplier of XML readers
+   * @param rootElements The root element handlers
+   * @param <T>          The type of returned values
+   *
+   * @return The parsed value
+   *
+   * @throws BTException On parse errors
+   */
+
+  public static <T> T parse(
+    final URI source,
+    final InputStream stream,
+    final Callable<XMLReader> xmlReaders,
+    final Map<BTQualifiedName, BTElementHandlerConstructorType<?, T>> rootElements)
+    throws BTException
+  {
+    final var errors =
+      new ArrayList<BTParseError>(32);
+    final var contentHandler =
+      new BTContentHandler<>(source, errors::add, rootElements);
+
+    try {
+      final var reader = xmlReaders.call();
+      reader.setContentHandler(contentHandler);
+      reader.setErrorHandler(contentHandler);
+
+      final var inputSource = new InputSource(stream);
+      inputSource.setPublicId(source.toString());
+
+      reader.parse(inputSource);
+
+      final var resultOpt = contentHandler.result();
+      if (resultOpt.isEmpty()) {
+        throw new BTException("Parse failed.", new IOException(), errors);
+      }
+
+      return resultOpt.get();
+    } catch (final SAXParseException e) {
+      LOG.error("error encountered during parsing: ", e);
+
+      final var position =
+        LexicalPosition.of(
+          e.getLineNumber(),
+          e.getColumnNumber(),
+          Optional.of(source)
+        );
+
+      errors.add(
+        BTParseError.builder()
+          .setLexical(position)
+          .setSeverity(ERROR)
+          .setMessage(e.getMessage())
+          .build()
+      );
+
+      throw new BTException(e.getMessage(), e, errors);
+    } catch (final Exception e) {
+      LOG.error("error encountered during parsing: ", e);
+
+      final var position =
+        LexicalPosition.of(-1, -1, Optional.of(source));
+
+      errors.add(
+        BTParseError.builder()
+          .setLexical(position)
+          .setSeverity(ERROR)
+          .setMessage(e.getMessage())
+          .build()
+      );
+      throw new BTException(e.getMessage(), e, errors);
+    }
   }
 }

@@ -14,7 +14,6 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.blackthorne.api;
 
 import com.io7m.immutables.styles.ImmutablesStyleType;

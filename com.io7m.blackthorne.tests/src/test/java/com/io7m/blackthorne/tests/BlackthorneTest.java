@@ -20,10 +20,15 @@ import com.io7m.blackthorne.api.BTContentHandler;
 import com.io7m.blackthorne.api.BTElementHandlerConstructorType;
 import com.io7m.blackthorne.api.BTElementHandlerType;
 import com.io7m.blackthorne.api.BTElementParsingContextType;
+import com.io7m.blackthorne.api.BTException;
 import com.io7m.blackthorne.api.BTIgnoreUnrecognizedElements;
 import com.io7m.blackthorne.api.BTParseError;
 import com.io7m.blackthorne.api.BTQualifiedName;
 import com.io7m.blackthorne.api.Blackthorne;
+import com.io7m.blackthorne.jxe.BlackthorneJXE;
+import com.io7m.jxe.core.JXEHardenedSAXParsers;
+import com.io7m.jxe.core.JXESchemaDefinition;
+import com.io7m.jxe.core.JXESchemaDefinitions;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,15 +41,19 @@ import org.xml.sax.XMLReader;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.SAXParserFactory;
+import java.io.InputStream;
 import java.math.BigInteger;
 import java.net.URI;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import static com.io7m.blackthorne.api.BTIgnoreUnrecognizedElements.DO_NOT_IGNORE_UNRECOGNIZED_ELEMENTS;
 import static com.io7m.blackthorne.api.BTIgnoreUnrecognizedElements.IGNORE_UNRECOGNIZED_ELEMENTS;
+import static com.io7m.jxe.core.JXEXInclude.XINCLUDE_DISABLED;
 
 /**
  * Tests for the API.
@@ -70,13 +79,24 @@ public final class BlackthorneTest
     final String name)
     throws Exception
   {
-    final var url =
-      BlackthorneTest.class.getResource("/com/io7m/blackthorne/tests/" + name);
-
+    final URL url = resourceURL(name);
     final var stream = url.openStream();
     final var source = new InputSource(stream);
     source.setPublicId(url.toString());
     return source;
+  }
+
+  private static URL resourceURL(
+    final String name)
+  {
+    return BlackthorneTest.class.getResource("/com/io7m/blackthorne/tests/" + name);
+  }
+
+  private static InputStream resourceStream(
+    final String name)
+    throws Exception
+  {
+    return resourceURL(name).openStream();
   }
 
   @BeforeEach
@@ -103,7 +123,10 @@ public final class BlackthorneTest
     throws Exception
   {
     final var handler =
-      new BTContentHandler<Integer>(URI.create("urn:text"), this::logError, Map.of());
+      new BTContentHandler<Integer>(
+        URI.create("urn:text"),
+        this::logError,
+        Map.of());
 
     final var reader = createReader();
     reader.setContentHandler(handler);
@@ -115,7 +138,8 @@ public final class BlackthorneTest
 
     {
       final var error = this.errors.remove(0);
-      Assertions.assertTrue(error.message().contains("not allowed as a root element"));
+      Assertions.assertTrue(error.message().contains(
+        "not allowed as a root element"));
     }
   }
 
@@ -130,7 +154,10 @@ public final class BlackthorneTest
     throws Exception
   {
     final var handler =
-      new BTContentHandler<Integer>(URI.create("urn:text"), this::logError, Map.of());
+      new BTContentHandler<Integer>(
+        URI.create("urn:text"),
+        this::logError,
+        Map.of());
 
     final var reader = createReader();
     reader.setContentHandler(handler);
@@ -142,7 +169,8 @@ public final class BlackthorneTest
 
     {
       final var error = this.errors.remove(0);
-      Assertions.assertTrue(error.message().contains("not allowed as a root element"));
+      Assertions.assertTrue(error.message().contains(
+        "not allowed as a root element"));
     }
   }
 
@@ -171,7 +199,8 @@ public final class BlackthorneTest
 
     {
       final var error = this.errors.remove(0);
-      Assertions.assertTrue(error.message().contains("not allowed as a root element"));
+      Assertions.assertTrue(error.message().contains(
+        "not allowed as a root element"));
     }
   }
 
@@ -200,7 +229,8 @@ public final class BlackthorneTest
 
     {
       final var error = this.errors.remove(0);
-      Assertions.assertTrue(error.message().contains("does not recognize this element"));
+      Assertions.assertTrue(error.message().contains(
+        "does not recognize this element"));
     }
   }
 
@@ -232,7 +262,6 @@ public final class BlackthorneTest
     Assertions.assertEquals(BigInteger.valueOf(23L), handler.result().get());
   }
 
-
   /**
    * Integer values are parsed correctly.
    *
@@ -244,7 +273,10 @@ public final class BlackthorneTest
     throws Exception
   {
     final var intAttr =
-      Blackthorne.forScalarAttribute("urn:tests", "intA", BlackthorneTest::parseIntAttribute);
+      Blackthorne.forScalarAttribute(
+        "urn:tests",
+        "intA",
+        BlackthorneTest::parseIntAttribute);
 
     final var handler =
       BTContentHandler.<Number>builder()
@@ -426,7 +458,9 @@ public final class BlackthorneTest
   {
     final Map<BTQualifiedName, BTElementHandlerConstructorType<?, List<Number>>> handlers =
       Map.ofEntries(
-        Map.entry(BTQualifiedName.of("urn:tests", "choices"), ChoicesHandler::new)
+        Map.entry(
+          BTQualifiedName.of("urn:tests", "choices"),
+          ChoicesHandler::new)
       );
 
     final var handler =
@@ -459,7 +493,9 @@ public final class BlackthorneTest
   {
     final Map<BTQualifiedName, BTElementHandlerConstructorType<?, List<Number>>> handlers =
       Map.ofEntries(
-        Map.entry(BTQualifiedName.of("urn:tests", "choices"), ChoicesIgnoringHandler::new)
+        Map.entry(
+          BTQualifiedName.of("urn:tests", "choices"),
+          ChoicesIgnoringHandler::new)
       );
 
     final var handler =
@@ -492,7 +528,9 @@ public final class BlackthorneTest
   {
     final Map<BTQualifiedName, BTElementHandlerConstructorType<?, List<Number>>> handlers =
       Map.ofEntries(
-        Map.entry(BTQualifiedName.of("urn:tests", "choices"), ChoicesIgnoringHandler::new)
+        Map.entry(
+          BTQualifiedName.of("urn:tests", "choices"),
+          ChoicesIgnoringHandler::new)
       );
 
     final var handler =
@@ -740,7 +778,9 @@ public final class BlackthorneTest
 
     final var numbers = handler.result().get();
     Assertions.assertEquals(Double.valueOf(46.0), numbers.get(0).doubleValue());
-    Assertions.assertEquals(Double.valueOf(50.20), numbers.get(1).doubleValue());
+    Assertions.assertEquals(
+      Double.valueOf(50.20),
+      numbers.get(1).doubleValue());
     Assertions.assertEquals(Double.valueOf(20.0), numbers.get(2).doubleValue());
     Assertions.assertEquals(3, numbers.size());
   }
@@ -863,7 +903,9 @@ public final class BlackthorneTest
     {
       return Map.ofEntries(
         Map.entry(BTQualifiedName.of("urn:tests", "byte"), ByteHandler::new),
-        Map.entry(BTQualifiedName.of("urn:tests", "double"), DoubleHandler::new),
+        Map.entry(
+          BTQualifiedName.of("urn:tests", "double"),
+          DoubleHandler::new),
         Map.entry(BTQualifiedName.of("urn:tests", "int"), IntHandler::new)
       );
     }
@@ -901,7 +943,10 @@ public final class BlackthorneTest
       throws SAXParseException
     {
       try {
-        return Byte.valueOf(Byte.parseByte(String.valueOf(chars, offset, length)));
+        return Byte.valueOf(Byte.parseByte(String.valueOf(
+          chars,
+          offset,
+          length)));
       } catch (final NumberFormatException e) {
         throw context.parseException(e);
       }
@@ -915,7 +960,10 @@ public final class BlackthorneTest
       throws SAXParseException
     {
       try {
-        return Double.valueOf(Double.parseDouble(String.valueOf(chars, offset, length)));
+        return Double.valueOf(Double.parseDouble(String.valueOf(
+          chars,
+          offset,
+          length)));
       } catch (final NumberFormatException e) {
         throw context.parseException(e);
       }
@@ -949,13 +997,22 @@ public final class BlackthorneTest
       return Map.ofEntries(
         Map.entry(
           nameByte,
-          Blackthorne.forScalar("urn:tests", "byte", ChoiceScalarHandler::parseByte)),
+          Blackthorne.forScalar(
+            "urn:tests",
+            "byte",
+            ChoiceScalarHandler::parseByte)),
         Map.entry(
           nameDouble,
-          Blackthorne.forScalar("urn:tests", "double", ChoiceScalarHandler::parseDouble)),
+          Blackthorne.forScalar(
+            "urn:tests",
+            "double",
+            ChoiceScalarHandler::parseDouble)),
         Map.entry(
           nameInt,
-          Blackthorne.forScalar("urn:tests", "int", ChoiceScalarHandler::parseInt))
+          Blackthorne.forScalar(
+            "urn:tests",
+            "int",
+            ChoiceScalarHandler::parseInt))
       );
     }
 
@@ -974,7 +1031,8 @@ public final class BlackthorneTest
     }
   }
 
-  private static final class ChoiceIgnoringHandler implements BTElementHandlerType<Number, Number>
+  private static final class ChoiceIgnoringHandler implements
+    BTElementHandlerType<Number, Number>
   {
     private Number result;
 
@@ -997,7 +1055,9 @@ public final class BlackthorneTest
     {
       return Map.ofEntries(
         Map.entry(BTQualifiedName.of("urn:tests", "byte"), ByteHandler::new),
-        Map.entry(BTQualifiedName.of("urn:tests", "double"), DoubleHandler::new),
+        Map.entry(
+          BTQualifiedName.of("urn:tests", "double"),
+          DoubleHandler::new),
         Map.entry(BTQualifiedName.of("urn:tests", "int"), IntHandler::new)
       );
     }
@@ -1051,7 +1111,8 @@ public final class BlackthorneTest
     }
   }
 
-  private static final class ChoicesIgnoringHandler implements BTElementHandlerType<Number, List<Number>>
+  private static final class ChoicesIgnoringHandler implements
+    BTElementHandlerType<Number, List<Number>>
   {
     private List<Number> results;
 
@@ -1073,7 +1134,9 @@ public final class BlackthorneTest
       final BTElementParsingContextType context)
     {
       return Map.ofEntries(
-        Map.entry(BTQualifiedName.of("urn:tests", "choice"), ChoiceIgnoringHandler::new)
+        Map.entry(
+          BTQualifiedName.of("urn:tests", "choice"),
+          ChoiceIgnoringHandler::new)
       );
     }
 
@@ -1090,5 +1153,97 @@ public final class BlackthorneTest
     {
       return this.results;
     }
+  }
+
+  /**
+   * Integer values are parsed correctly.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testConvenience0()
+    throws Exception
+  {
+    final Map<BTQualifiedName, BTElementHandlerConstructorType<?, BigInteger>> handlers =
+      Map.ofEntries(
+        Map.entry(BTQualifiedName.of("urn:tests", "int"), IntHandler::new)
+      );
+
+    final var mappings =
+      JXESchemaDefinitions.mappingsOf(
+        JXESchemaDefinition.of(
+          URI.create("urn:tests"),
+          "choice.xsd",
+          resourceURL("choice.xsd")
+        ));
+
+    BlackthorneJXE.parseAll(
+      URI.create("urn:test"),
+      resourceStream("int.xml"),
+      handlers,
+      new JXEHardenedSAXParsers(),
+      Optional.empty(),
+      XINCLUDE_DISABLED,
+      mappings
+    );
+
+    BlackthorneJXE.parse(
+      URI.create("urn:test"),
+      resourceStream("int.xml"),
+      handlers,
+      Optional.empty(),
+      XINCLUDE_DISABLED,
+      mappings
+    );
+
+    BlackthorneJXE.parse(
+      URI.create("urn:test"),
+      resourceStream("int.xml"),
+      handlers,
+      XINCLUDE_DISABLED,
+      mappings
+    );
+
+    BlackthorneJXE.parse(
+      URI.create("urn:test"),
+      resourceStream("int.xml"),
+      handlers,
+      mappings
+    );
+  }
+
+  /**
+   * Unparseable documents raise exceptions.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testConvenience1()
+    throws Exception
+  {
+    final Map<BTQualifiedName, BTElementHandlerConstructorType<?, BigInteger>> handlers =
+      Map.ofEntries(
+        Map.entry(BTQualifiedName.of("urn:tests", "int"), IntHandler::new)
+      );
+
+    final var ex =
+      Assertions.assertThrows(BTException.class, () -> {
+        Blackthorne.parse(
+          URI.create("urn:test"),
+          resourceStream("unparseable.xml"),
+          () -> {
+            return new JXEHardenedSAXParsers()
+              .createXMLReaderNonValidating(
+                Optional.empty(),
+                XINCLUDE_DISABLED);
+          },
+          handlers
+        );
+      });
+
+    Assertions.assertEquals(SAXParseException.class, ex.getCause().getClass());
+    Assertions.assertEquals(2, ex.errors().size());
   }
 }

@@ -21,6 +21,7 @@ import com.io7m.blackthorne.api.BTQualifiedName;
 import net.jqwik.api.ForAll;
 import net.jqwik.api.Property;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
 
 public final class BTQualifiedNameTest
 {
@@ -55,6 +56,11 @@ public final class BTQualifiedNameTest
     final @ForAll String localName1,
     final @ForAll String localName2)
   {
+    Assumptions.assumeFalse(namespace0.equals(namespace1));
+    Assumptions.assumeFalse(namespace1.equals(namespace2));
+    Assumptions.assumeFalse(localName0.equals(localName1));
+    Assumptions.assumeFalse(localName1.equals(localName2));
+
     final var v0 =
       BTQualifiedName.builder()
         .setLocalName(localName0)
@@ -73,8 +79,8 @@ public final class BTQualifiedNameTest
     final var v2 =
       BTQualifiedName.copyOf(v1);
 
-    Assertions.assertNotEquals(v0, v2);
     Assertions.assertNotEquals(v0, v1);
+    Assertions.assertNotEquals(v0, v2);
     Assertions.assertEquals(v2, v1);
     Assertions.assertEquals(v2.toString(), v1.toString());
   }
