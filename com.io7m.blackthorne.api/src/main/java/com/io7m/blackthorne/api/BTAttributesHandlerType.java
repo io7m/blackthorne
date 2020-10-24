@@ -18,7 +18,6 @@
 package com.io7m.blackthorne.api;
 
 import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
 
 /**
  * A function that, given a set of attributes, returns a {@code T}.
@@ -36,11 +35,11 @@ public interface BTAttributesHandlerType<T>
    *
    * @return A value of {@code T}
    *
-   * @throws SAXException On errors
+   * @throws Exception On errors
    */
 
   T parse(
     BTElementParsingContextType context,
     Attributes attributes)
-    throws SAXException;
+    throws Exception;
 }

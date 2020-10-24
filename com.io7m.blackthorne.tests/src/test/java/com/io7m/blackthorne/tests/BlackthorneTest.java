@@ -22,9 +22,9 @@ import com.io7m.blackthorne.api.BTElementHandlerType;
 import com.io7m.blackthorne.api.BTElementParsingContextType;
 import com.io7m.blackthorne.api.BTException;
 import com.io7m.blackthorne.api.BTIgnoreUnrecognizedElements;
-import com.io7m.blackthorne.api.BTLeafElementHandler;
 import com.io7m.blackthorne.api.BTParseError;
 import com.io7m.blackthorne.api.BTQualifiedName;
+import com.io7m.blackthorne.api.BTScalarAttributeHandler;
 import com.io7m.blackthorne.api.Blackthorne;
 import com.io7m.blackthorne.jxe.BlackthorneJXE;
 import com.io7m.jxe.core.JXEHardenedSAXParsers;
@@ -1259,7 +1259,7 @@ public final class BlackthorneTest
     throws Exception
   {
     final var intAttr =
-      new BTLeafElementHandler<>(
+      new BTScalarAttributeHandler<>(
         BTQualifiedName.of("urn:tests", "intA"),
         BlackthorneTest::parseIntAttribute
       );

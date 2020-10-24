@@ -28,15 +28,6 @@ public final class BTException extends Exception
   private final List<BTParseError> errors;
 
   /**
-   * @return The parse errors encountered during parsing
-   */
-
-  public List<BTParseError> errors()
-  {
-    return this.errors;
-  }
-
-  /**
    * Construct an exception.
    *
    * @param inMessage The exception message
@@ -83,5 +74,14 @@ public final class BTException extends Exception
   {
     super(Objects.requireNonNull(inCause, "cause"));
     this.errors = Objects.requireNonNull(inErrors, "errors");
+  }
+
+  /**
+   * @return The parse errors encountered during parsing
+   */
+
+  public List<BTParseError> errors()
+  {
+    return this.errors;
   }
 }

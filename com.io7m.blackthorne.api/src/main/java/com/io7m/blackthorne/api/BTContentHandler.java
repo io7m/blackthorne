@@ -17,18 +17,19 @@
 package com.io7m.blackthorne.api;
 
 import com.io7m.jlexing.core.LexicalPosition;
-import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.function.Consumer;
 import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.ext.DefaultHandler2;
 import org.xml.sax.ext.Locator2;
+
+import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * A dispatching handler that produces values of type {@code T}. The handler is responsible for
@@ -95,6 +96,18 @@ public final class BTContentHandler<T> extends DefaultHandler2
     return new Builder<>();
   }
 
+  private static String messageOrException(
+    final Exception e)
+  {
+    final var messageOrNull = e.getMessage();
+    if (messageOrNull == null) {
+      return String.format(
+        "No error message provided for exception %s",
+        e.getClass().getName());
+    }
+    return messageOrNull;
+  }
+
   @Override
   public void setDocumentLocator(
     final Locator in_locator)
@@ -109,12 +122,13 @@ public final class BTContentHandler<T> extends DefaultHandler2
     final String localName,
     final String qualifiedName,
     final Attributes attributes)
-    throws SAXException
   {
     try {
       this.stackHandler.onElementStarted(namespaceURI, localName, attributes);
     } catch (final SAXParseException e) {
       this.error(e);
+    } catch (final Exception e) {
+      this.error(this.saxParseExceptionOf(e));
     }
   }
 
@@ -123,12 +137,13 @@ public final class BTContentHandler<T> extends DefaultHandler2
     final String namespaceURI,
     final String localName,
     final String qualifiedName)
-    throws SAXException
   {
     try {
       this.stackHandler.onElementFinished(namespaceURI, localName);
     } catch (final SAXParseException e) {
       this.error(e);
+    } catch (final Exception e) {
+      this.error(this.saxParseExceptionOf(e));
     }
   }
 
@@ -137,12 +152,13 @@ public final class BTContentHandler<T> extends DefaultHandler2
     final char[] ch,
     final int start,
     final int length)
-    throws SAXException
   {
     try {
       this.stackHandler.onCharacters(ch, start, length);
     } catch (final SAXParseException e) {
       this.error(e);
+    } catch (final Exception e) {
+      this.error(this.saxParseExceptionOf(e));
     }
   }
 
@@ -189,18 +205,6 @@ public final class BTContentHandler<T> extends DefaultHandler2
     throw e;
   }
 
-  private static String messageOrException(
-    final Exception e)
-  {
-    final var messageOrNull = e.getMessage();
-    if (messageOrNull == null) {
-      return String.format(
-        "No error message provided for exception %s",
-        e.getClass().getName());
-    }
-    return messageOrNull;
-  }
-
   private LexicalPosition<URI> currentLexical()
   {
     final LexicalPosition<URI> lexicalPosition;
@@ -221,6 +225,12 @@ public final class BTContentHandler<T> extends DefaultHandler2
           .build();
     }
     return lexicalPosition;
+  }
+
+  private SAXParseException saxParseExceptionOf(
+    final Exception e)
+  {
+    return new SAXParseException(e.getLocalizedMessage(), this.locator, e);
   }
 
   /**

@@ -55,7 +55,9 @@ public interface BTContentHandlerBuilderType<T>
     final String localName,
     final BTElementHandlerConstructorType<?, T> constructor)
   {
-    return this.addHandler(BTQualifiedName.of(namespaceURI, localName), constructor);
+    return this.addHandler(
+      BTQualifiedName.of(namespaceURI, localName),
+      constructor);
   }
 
   /**

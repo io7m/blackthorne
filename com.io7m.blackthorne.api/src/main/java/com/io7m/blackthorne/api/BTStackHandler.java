@@ -21,7 +21,6 @@ import com.io7m.jaffirm.core.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.ext.Locator2;
 
@@ -115,14 +114,14 @@ public final class BTStackHandler<T>
    * @param localName    The local element name
    * @param attributes   The element attributes
    *
-   * @throws SAXException On parse errors
+   * @throws Exception On parse errors
    */
 
   public void onElementStarted(
     final String namespaceURI,
     final String localName,
     final Attributes attributes)
-    throws SAXException
+    throws Exception
   {
     try {
       Objects.requireNonNull(namespaceURI, "namespaceURI");
@@ -150,7 +149,10 @@ public final class BTStackHandler<T>
         final var rootHandlerConstructor = this.rootHandlers.get(qualifiedName);
         if (rootHandlerConstructor == null) {
           throw new SAXParseException(
-            BTMessages.format("errorRootElementNotAllowed", localName, namespaceURI),
+            BTMessages.format(
+              "errorRootElementNotAllowed",
+              localName,
+              namespaceURI),
             this.context.documentLocator());
         }
 
@@ -215,7 +217,9 @@ public final class BTStackHandler<T>
        */
 
       final var newHandler =
-        Objects.requireNonNull(childHandlerConstructor, "childHandlerConstructor")
+        Objects.requireNonNull(
+          childHandlerConstructor,
+          "childHandlerConstructor")
           .create(this.context);
 
       Objects.requireNonNull(newHandler, "newHandler");
@@ -235,14 +239,14 @@ public final class BTStackHandler<T>
    * @param offset The starting offset into {@code data}
    * @param length The length of the data in {@code data}
    *
-   * @throws SAXException On parse errors
+   * @throws Exception On parse errors
    */
 
   public void onCharacters(
     final char[] data,
     final int offset,
     final int length)
-    throws SAXException
+    throws Exception
   {
     try {
       Objects.requireNonNull(data, "data");
@@ -277,13 +281,13 @@ public final class BTStackHandler<T>
    * @param namespaceURI The namespace URI
    * @param localName    The local element name
    *
-   * @throws SAXException On parse errors
+   * @throws Exception On parse errors
    */
 
   public void onElementFinished(
     final String namespaceURI,
     final String localName)
-    throws SAXException
+    throws Exception
   {
     try {
       Objects.requireNonNull(namespaceURI, "namespaceURI");
