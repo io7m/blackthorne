@@ -16,8 +16,6 @@
 
 package com.io7m.blackthorne.api;
 
-import org.xml.sax.SAXException;
-
 /**
  * A content handler constructor that produces handlers that produce values of type {@code A}
  *
@@ -34,11 +32,11 @@ public interface BTElementHandlerConstructorType<CT, RT>
    *
    * @return A new content handler
    *
-   * @throws SAXException If required
+   * @throws Exception If required
    * @see BTElementParsingContextType#parseException(Exception)
    */
 
   BTElementHandlerType<? extends CT, ? extends RT> create(
     BTElementParsingContextType context)
-    throws SAXException;
+    throws Exception;
 }

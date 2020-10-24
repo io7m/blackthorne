@@ -17,8 +17,6 @@
 
 package com.io7m.blackthorne.api;
 
-import org.xml.sax.SAXException;
-
 /**
  * A function that, given a string, returns a {@code T}.
  *
@@ -37,7 +35,7 @@ public interface BTCharacterHandlerType<T>
    *
    * @return A value of {@code T}
    *
-   * @throws SAXException On errors
+   * @throws Exception On errors
    */
 
   T parse(
@@ -45,5 +43,5 @@ public interface BTCharacterHandlerType<T>
     char[] characters,
     int offset,
     int length)
-    throws SAXException;
+    throws Exception;
 }

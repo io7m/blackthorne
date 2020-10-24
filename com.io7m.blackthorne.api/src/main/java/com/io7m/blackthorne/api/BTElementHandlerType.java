@@ -18,7 +18,6 @@
 package com.io7m.blackthorne.api;
 
 import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
 
 import java.util.Map;
 import java.util.function.Function;
@@ -82,13 +81,13 @@ public interface BTElementHandlerType<CT, RT>
    * @param context    The parsing context
    * @param attributes The element's attributes
    *
-   * @throws SAXException On parse errors
+   * @throws Exception On parse errors
    */
 
   default void onElementStart(
     final BTElementParsingContextType context,
     final Attributes attributes)
-    throws SAXException
+    throws Exception
   {
 
   }
@@ -101,11 +100,11 @@ public interface BTElementHandlerType<CT, RT>
    *
    * @return The value produced by all of the data received up to this point
    *
-   * @throws SAXException On parse errors
+   * @throws Exception On parse errors
    */
 
   RT onElementFinished(BTElementParsingContextType context)
-    throws SAXException;
+    throws Exception;
 
   /**
    * A child element has been parsed successfully and produced a result.
@@ -113,13 +112,13 @@ public interface BTElementHandlerType<CT, RT>
    * @param context The parsing context
    * @param result  The value produced by the child element
    *
-   * @throws SAXException On parse errors
+   * @throws Exception On parse errors
    */
 
   default void onChildValueProduced(
     final BTElementParsingContextType context,
     final CT result)
-    throws SAXException
+    throws Exception
   {
 
   }
@@ -132,7 +131,7 @@ public interface BTElementHandlerType<CT, RT>
    * @param offset  The start of the data within {@code data}
    * @param length  The length of the data within {@code data}
    *
-   * @throws SAXException On parse errors
+   * @throws Exception On parse errors
    */
 
   default void onCharacters(
@@ -140,7 +139,7 @@ public interface BTElementHandlerType<CT, RT>
     final char[] data,
     final int offset,
     final int length)
-    throws SAXException
+    throws Exception
   {
 
   }

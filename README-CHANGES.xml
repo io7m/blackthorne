@@ -1,8 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <c:changelog project="com.io7m.blackthorne" xmlns:c="urn:com.io7m.changelog:4.0">
   <c:releases>
-    <c:release date="2020-10-15T14:07:35+00:00" ticket-system="com.github.io7m.blackthorne" version="1.0.0">
+    <c:release date="2020-10-15T00:00:00+00:00" ticket-system="com.github.io7m.blackthorne" version="1.0.0">
       <c:changes/>
+    </c:release>
+    <c:release date="2020-10-24T20:32:34+00:00" ticket-system="com.github.io7m.blackthorne" version="1.1.0">
+      <c:changes>
+        <c:change date="2020-10-24T20:32:34+00:00" summary="Allow content handlers to throw raw exceptions">
+          <c:tickets>
+            <c:ticket id="2"/>
+          </c:tickets>
+        </c:change>
+      </c:changes>
     </c:release>
   </c:releases>
   <c:ticket-systems>

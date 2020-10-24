@@ -17,8 +17,6 @@
 
 package com.io7m.blackthorne.api;
 
-import org.xml.sax.SAXException;
-
 import java.util.Objects;
 
 /**
@@ -60,7 +58,7 @@ public final class BTScalarElementHandler<S> implements BTElementHandlerType<Obj
     final char[] data,
     final int offset,
     final int length)
-    throws SAXException
+    throws Exception
   {
     this.result = this.handler.parse(context, data, offset, length);
   }

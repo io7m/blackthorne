@@ -8,7 +8,7 @@
   <parent>
     <artifactId>com.io7m.blackthorne</artifactId>
     <groupId>com.io7m.blackthorne</groupId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
   </parent>
 
   <artifactId>com.io7m.blackthorne.jxe</artifactId>

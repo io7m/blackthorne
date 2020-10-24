@@ -18,7 +18,6 @@
 package com.io7m.blackthorne.api;
 
 import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
 
 import java.util.Map;
 import java.util.Objects;
@@ -76,7 +75,7 @@ public final class BTFunctorHandler<A, B, C> implements BTElementHandlerType<A, 
   public void onElementStart(
     final BTElementParsingContextType context,
     final Attributes attributes)
-    throws SAXException
+    throws Exception
   {
     this.handler.onElementStart(context, attributes);
   }
@@ -85,7 +84,7 @@ public final class BTFunctorHandler<A, B, C> implements BTElementHandlerType<A, 
   public void onChildValueProduced(
     final BTElementParsingContextType context,
     final A result)
-    throws SAXException
+    throws Exception
   {
     this.handler.onChildValueProduced(context, result);
   }
@@ -96,14 +95,14 @@ public final class BTFunctorHandler<A, B, C> implements BTElementHandlerType<A, 
     final char[] data,
     final int offset,
     final int length)
-    throws SAXException
+    throws Exception
   {
     this.handler.onCharacters(context, data, offset, length);
   }
 
   @Override
   public C onElementFinished(final BTElementParsingContextType context)
-    throws SAXException
+    throws Exception
   {
     return this.function.apply(this.handler.onElementFinished(context));
   }
