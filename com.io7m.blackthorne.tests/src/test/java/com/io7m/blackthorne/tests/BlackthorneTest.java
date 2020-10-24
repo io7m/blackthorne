@@ -22,6 +22,7 @@ import com.io7m.blackthorne.api.BTElementHandlerType;
 import com.io7m.blackthorne.api.BTElementParsingContextType;
 import com.io7m.blackthorne.api.BTException;
 import com.io7m.blackthorne.api.BTIgnoreUnrecognizedElements;
+import com.io7m.blackthorne.api.BTLeafElementHandler;
 import com.io7m.blackthorne.api.BTParseError;
 import com.io7m.blackthorne.api.BTQualifiedName;
 import com.io7m.blackthorne.api.Blackthorne;
@@ -1245,5 +1246,36 @@ public final class BlackthorneTest
 
     Assertions.assertEquals(SAXParseException.class, ex.getCause().getClass());
     Assertions.assertEquals(2, ex.errors().size());
+  }
+
+  /**
+   * Leaf element handlers work.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testLeafIntegerAttr0()
+    throws Exception
+  {
+    final var intAttr =
+      new BTLeafElementHandler<>(
+        BTQualifiedName.of("urn:tests", "intA"),
+        BlackthorneTest::parseIntAttribute
+      );
+
+    final var handler =
+      BTContentHandler.<Number>builder()
+        .addHandler("urn:tests", "intA", context -> intAttr)
+        .build(URI.create("urn:text"), this::logError);
+
+    final var reader = createReader();
+    reader.setContentHandler(handler);
+    reader.setErrorHandler(handler);
+    reader.parse(resource("intA.xml"));
+
+    Assertions.assertFalse(handler.failed());
+    Assertions.assertEquals(0, this.errors.size());
+    Assertions.assertEquals(BigInteger.valueOf(23L), handler.result().get());
   }
 }
