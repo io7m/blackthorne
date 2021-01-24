@@ -17,6 +17,8 @@
 package com.io7m.blackthorne.api;
 
 import com.io7m.jlexing.core.LexicalPosition;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
@@ -40,6 +42,9 @@ import java.util.function.Consumer;
 
 public final class BTContentHandler<T> extends DefaultHandler2
 {
+  private static final Logger LOG =
+    LoggerFactory.getLogger(BTContentHandler.class);
+
   private final URI fileURI;
   private final Consumer<BTParseError> errorReceiver;
   private Locator2 locator;
@@ -112,8 +117,10 @@ public final class BTContentHandler<T> extends DefaultHandler2
   public void setDocumentLocator(
     final Locator in_locator)
   {
-    this.locator = (Locator2) Objects.requireNonNull(in_locator, "locator");
-    this.stackHandler = new BTStackHandler<T>(this.locator, this.rootHandlers);
+    this.locator =
+      (Locator2) Objects.requireNonNull(in_locator, "locator");
+    this.stackHandler =
+      new BTStackHandler<>(this.locator, this.rootHandlers);
   }
 
   @Override
@@ -166,6 +173,8 @@ public final class BTContentHandler<T> extends DefaultHandler2
   public void warning(
     final SAXParseException e)
   {
+    LOG.warn("parse exception: ", e);
+
     this.errorReceiver.accept(
       BTParseError.builder()
         .setException(e)
@@ -179,6 +188,8 @@ public final class BTContentHandler<T> extends DefaultHandler2
   public void error(
     final SAXParseException e)
   {
+    LOG.error("parse exception: ", e);
+
     this.failed = true;
     this.errorReceiver.accept(
       BTParseError.builder()
@@ -194,6 +205,8 @@ public final class BTContentHandler<T> extends DefaultHandler2
     final SAXParseException e)
     throws SAXException
   {
+    LOG.error("fatal parse exception: ", e);
+
     this.failed = true;
     this.errorReceiver.accept(
       BTParseError.builder()
