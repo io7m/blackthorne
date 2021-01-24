@@ -1,12 +1,26 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <c:changelog project="com.io7m.blackthorne" xmlns:c="urn:com.io7m.changelog:4.0">
   <c:releases>
-    <c:release date="2020-10-15T00:00:00+00:00" ticket-system="com.github.io7m.blackthorne" version="1.0.0">
+    <c:release date="2020-10-15T00:00:00+00:00" is-open="false" ticket-system="com.github.io7m.blackthorne" version="1.0.0">
       <c:changes/>
     </c:release>
-    <c:release date="2020-10-24T20:32:34+00:00" ticket-system="com.github.io7m.blackthorne" version="1.1.0">
+    <c:release date="2020-10-24T00:00:00+00:00" is-open="false" ticket-system="com.github.io7m.blackthorne" version="1.1.0">
       <c:changes>
-        <c:change date="2020-10-24T20:32:34+00:00" summary="Allow content handlers to throw raw exceptions">
+        <c:change date="2020-10-24T00:00:00+00:00" summary="Allow content handlers to throw raw exceptions">
+          <c:tickets>
+            <c:ticket id="2"/>
+          </c:tickets>
+        </c:change>
+      </c:changes>
+    </c:release>
+    <c:release date="2021-01-24T13:01:32+00:00" is-open="false" ticket-system="com.github.io7m.blackthorne" version="1.2.0">
+      <c:changes>
+        <c:change date="2021-01-24T00:00:00+00:00" summary="Add logging for content handlers">
+          <c:tickets>
+            <c:ticket id="3"/>
+          </c:tickets>
+        </c:change>
+        <c:change date="2021-01-24T00:00:00+00:00" summary="Add more convenience methods for scalar elements">
           <c:tickets>
             <c:ticket id="2"/>
           </c:tickets>

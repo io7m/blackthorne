@@ -277,6 +277,87 @@ public final class Blackthorne
   }
 
   /**
+   * A convenience function for constructing content handlers that produce a scalar value from the
+   * text content of a single XML element.
+   *
+   * @param elementName The name of the element
+   *
+   * @return A content handler constructor
+   */
+
+  public static BTElementHandlerConstructorType<?, String> forScalarString(
+    final BTQualifiedName elementName)
+  {
+    return forScalar(elementName, (context, characters, offset, length) -> {
+      // CHECKSTYLE:OFF
+      return new String(characters, offset, length);
+      // CHECKSTYLE:ON
+    });
+  }
+
+  /**
+   * A convenience function for constructing content handlers that produce a scalar value from the
+   * text content of a single XML element.
+   *
+   * @param namespaceURI The namespace of the element
+   * @param localName    The local element name
+   *
+   * @return A content handler constructor
+   */
+
+  public static BTElementHandlerConstructorType<?, String> forScalarString(
+    final String namespaceURI,
+    final String localName)
+  {
+    return forScalar(
+      namespaceURI,
+      localName,
+      (context, characters, offset, length) -> {
+        // CHECKSTYLE:OFF
+        return new String(characters, offset, length);
+        // CHECKSTYLE:ON
+      });
+  }
+
+  /**
+   * A convenience function for constructing content handlers that produce a scalar value from the
+   * text content of a single XML element.
+   *
+   * @param elementName The name of the element
+   * @param parser      A function from strings to values of type {@code S}
+   * @param <S>         The type of returned values
+   *
+   * @return A content handler constructor
+   */
+
+  public static <S> BTElementHandlerConstructorType<?, S> forScalarFromString(
+    final BTQualifiedName elementName,
+    final Function<String, S> parser)
+  {
+    return mapConstructor(forScalarString(elementName), parser);
+  }
+
+  /**
+   * A convenience function for constructing content handlers that produce a scalar value from the
+   * text content of a single XML element.
+   *
+   * @param namespaceURI The namespace of the element
+   * @param localName    The local element name
+   * @param parser       A function from strings to values of type {@code S}
+   * @param <S>          The type of returned values
+   *
+   * @return A content handler constructor
+   */
+
+  public static <S> BTElementHandlerConstructorType<?, S> forScalarFromString(
+    final String namespaceURI,
+    final String localName,
+    final Function<String, S> parser)
+  {
+    return mapConstructor(forScalarString(namespaceURI, localName), parser);
+  }
+
+  /**
    * A convenience method to configure and execute a parser.
    *
    * @param source       The source URI

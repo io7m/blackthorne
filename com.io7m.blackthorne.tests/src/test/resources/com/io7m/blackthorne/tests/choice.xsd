@@ -5,6 +5,12 @@
             attributeFormDefault="qualified"
             targetNamespace="urn:tests">
 
+  <xsd:element name="string">
+    <xsd:simpleType>
+      <xsd:restriction base="xsd:string"/>
+    </xsd:simpleType>
+  </xsd:element>
+
   <xsd:element name="int">
     <xsd:simpleType>
       <xsd:restriction base="xsd:integer"/>

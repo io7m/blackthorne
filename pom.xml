@@ -8,12 +8,12 @@
   <parent>
     <groupId>com.io7m.primogenitor</groupId>
     <artifactId>com.io7m.primogenitor.full</artifactId>
-    <version>6.0.0</version>
+    <version>6.2.0</version>
   </parent>
 
   <groupId>com.io7m.blackthorne</groupId>
   <artifactId>com.io7m.blackthorne</artifactId>
-  <version>1.1.0</version>
+  <version>1.2.0</version>
   <packaging>pom</packaging>
 
   <name>com.io7m.blackthorne</name>
@@ -33,7 +33,7 @@
     <com.io7m.immutables.version>2.7.5</com.io7m.immutables.version>
     <com.io7m.junit.version>5.7.0</com.io7m.junit.version>
     <com.io7m.jxe.version>1.0.0</com.io7m.jxe.version>
-    <io7m.api.previousVersion>1.0.0</io7m.api.previousVersion>
+    <io7m.api.previousVersion>1.1.0</io7m.api.previousVersion>
   </properties>
 
   <licenses>
