@@ -1278,4 +1278,123 @@ public final class BlackthorneTest
     Assertions.assertEquals(0, this.errors.size());
     Assertions.assertEquals(BigInteger.valueOf(23L), handler.result().get());
   }
+
+  /**
+   * Scalar element handlers work.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testText0()
+    throws Exception
+  {
+    final var handler =
+      BTContentHandler.<String>builder()
+        .addHandler(
+          "urn:tests",
+          "string",
+          Blackthorne.forScalarString("urn:tests", "string"))
+        .build(URI.create("urn:text"), this::logError);
+
+    final var reader = createReader();
+    reader.setContentHandler(handler);
+    reader.setErrorHandler(handler);
+    reader.parse(resource("string.xml"));
+
+    Assertions.assertFalse(handler.failed());
+    Assertions.assertEquals(0, this.errors.size());
+    Assertions.assertEquals("This is some text.", handler.result().get());
+  }
+
+  /**
+   * Scalar element handlers work.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testText1()
+    throws Exception
+  {
+    final var name =
+      BTQualifiedName.of("urn:tests", "string");
+
+    final var handler =
+      BTContentHandler.<String>builder()
+        .addHandler(name, Blackthorne.forScalarString(name))
+        .build(URI.create("urn:text"), this::logError);
+
+    final var reader = createReader();
+    reader.setContentHandler(handler);
+    reader.setErrorHandler(handler);
+    reader.parse(resource("string.xml"));
+
+    Assertions.assertFalse(handler.failed());
+    Assertions.assertEquals(0, this.errors.size());
+    Assertions.assertEquals("This is some text.", handler.result().get());
+  }
+
+  /**
+   * Scalar element handlers work.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testText2()
+    throws Exception
+  {
+    final var handler =
+      BTContentHandler.<Exception>builder()
+        .addHandler(
+          "urn:tests",
+          "string",
+          Blackthorne.forScalarFromString(
+            "urn:tests",
+            "string",
+            Exception::new))
+        .build(URI.create("urn:text"), this::logError);
+
+    final var reader = createReader();
+    reader.setContentHandler(handler);
+    reader.setErrorHandler(handler);
+    reader.parse(resource("string.xml"));
+
+    Assertions.assertFalse(handler.failed());
+    Assertions.assertEquals(0, this.errors.size());
+    Assertions.assertEquals(
+      "This is some text.",
+      handler.result().get().getMessage());
+  }
+
+  /**
+   * Scalar element handlers work.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testText3()
+    throws Exception
+  {
+    final var name =
+      BTQualifiedName.of("urn:tests", "string");
+
+    final var handler =
+      BTContentHandler.<Exception>builder()
+        .addHandler(name, Blackthorne.forScalarFromString(name, Exception::new))
+        .build(URI.create("urn:text"), this::logError);
+
+    final var reader = createReader();
+    reader.setContentHandler(handler);
+    reader.setErrorHandler(handler);
+    reader.parse(resource("string.xml"));
+
+    Assertions.assertFalse(handler.failed());
+    Assertions.assertEquals(0, this.errors.size());
+    Assertions.assertEquals(
+      "This is some text.",
+      handler.result().get().getMessage());
+  }
 }

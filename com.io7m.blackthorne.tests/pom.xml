@@ -8,7 +8,7 @@
   <parent>
     <artifactId>com.io7m.blackthorne</artifactId>
     <groupId>com.io7m.blackthorne</groupId>
-    <version>1.1.1-SNAPSHOT</version>
+    <version>1.2.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>com.io7m.blackthorne.tests</artifactId>
