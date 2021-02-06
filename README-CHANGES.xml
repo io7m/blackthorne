@@ -27,9 +27,9 @@
         </c:change>
       </c:changes>
     </c:release>
-    <c:release date="2021-02-06T10:37:44+00:00" is-open="true" ticket-system="com.github.io7m.blackthorne" version="1.2.1">
+    <c:release date="2021-02-06T10:49:23+00:00" is-open="false" ticket-system="com.github.io7m.blackthorne" version="1.2.1">
       <c:changes>
-        <c:change date="2021-02-06T10:37:44+00:00" summary="Ensure that scalar element handlers never return null for empty elements">
+        <c:change date="2021-02-06T00:00:00+00:00" summary="Ensure that scalar element handlers never return null for empty elements">
           <c:tickets>
             <c:ticket id="4"/>
           </c:tickets>
