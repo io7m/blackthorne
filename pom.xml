@@ -29,11 +29,10 @@
   </modules>
 
   <properties>
-    <com.codacy.id>0b143cd2902b46e19be55cc6933e2362</com.codacy.id>
     <com.io7m.immutables.version>2.7.5</com.io7m.immutables.version>
     <com.io7m.junit.version>5.7.0</com.io7m.junit.version>
     <com.io7m.jxe.version>1.0.0</com.io7m.jxe.version>
-    <io7m.api.previousVersion>1.1.0</io7m.api.previousVersion>
+    <io7m.api.previousVersion>1.2.0</io7m.api.previousVersion>
   </properties>
 
   <licenses>
