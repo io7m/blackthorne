@@ -27,6 +27,7 @@ import java.util.Objects;
 
 public final class BTScalarElementHandler<S> implements BTElementHandlerType<Object, S>
 {
+  private static final char[] CHARACTERS = new char[0];
   private final BTCharacterHandlerType<S> handler;
   private final BTQualifiedName name;
   private S result;
@@ -42,8 +43,10 @@ public final class BTScalarElementHandler<S> implements BTElementHandlerType<Obj
     final BTQualifiedName inName,
     final BTCharacterHandlerType<S> inHandler)
   {
-    this.name = Objects.requireNonNull(inName, "name");
-    this.handler = Objects.requireNonNull(inHandler, "handler");
+    this.name =
+      Objects.requireNonNull(inName, "name");
+    this.handler =
+      Objects.requireNonNull(inHandler, "handler");
   }
 
   @Override
@@ -60,13 +63,23 @@ public final class BTScalarElementHandler<S> implements BTElementHandlerType<Obj
     final int length)
     throws Exception
   {
-    this.result = this.handler.parse(context, data, offset, length);
+    final var parsed =
+      this.handler.parse(context, data, offset, length);
+    this.result =
+      Objects.requireNonNull(parsed, "parsed");
   }
 
   @Override
   public S onElementFinished(
     final BTElementParsingContextType context)
+    throws Exception
   {
+    if (this.result == null) {
+      final var parsed =
+        this.handler.parse(context, CHARACTERS, 0, 0);
+      this.result =
+        Objects.requireNonNull(parsed, "parsed");
+    }
     return this.result;
   }
 }

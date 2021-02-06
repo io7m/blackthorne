@@ -1397,4 +1397,34 @@ public final class BlackthorneTest
       "This is some text.",
       handler.result().get().getMessage());
   }
+
+  /**
+   * Scalar element handlers work.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testText4()
+    throws Exception
+  {
+    final var name =
+      BTQualifiedName.of("urn:tests", "string");
+
+    final var handler =
+      BTContentHandler.<Exception>builder()
+        .addHandler(name, Blackthorne.forScalarFromString(name, Exception::new))
+        .build(URI.create("urn:text"), this::logError);
+
+    final var reader = createReader();
+    reader.setContentHandler(handler);
+    reader.setErrorHandler(handler);
+    reader.parse(resource("stringEmpty.xml"));
+
+    Assertions.assertFalse(handler.failed());
+    Assertions.assertEquals(0, this.errors.size());
+    Assertions.assertEquals(
+      "",
+      handler.result().get().getMessage());
+  }
 }
