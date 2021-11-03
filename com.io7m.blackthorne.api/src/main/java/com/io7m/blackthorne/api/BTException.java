@@ -82,6 +82,6 @@ public final class BTException extends Exception
 
   public List<BTParseError> errors()
   {
-    return this.errors;
+    return List.copyOf(this.errors);
   }
 }
