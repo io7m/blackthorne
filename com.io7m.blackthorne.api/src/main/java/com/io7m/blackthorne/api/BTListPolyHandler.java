@@ -77,7 +77,7 @@ public final class BTListPolyHandler<S> implements BTElementHandlerType<S, List<
   public Map<BTQualifiedName, BTElementHandlerConstructorType<?, ? extends S>> onChildHandlersRequested(
     final BTElementParsingContextType context)
   {
-    return this.itemHandlers;
+    return Map.copyOf(this.itemHandlers);
   }
 
   @Override
