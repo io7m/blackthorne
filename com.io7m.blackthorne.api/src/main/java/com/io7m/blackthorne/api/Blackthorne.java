@@ -394,7 +394,15 @@ public final class Blackthorne
       reader.parse(inputSource);
 
       final var resultOpt = contentHandler.result();
-      if (resultOpt.isEmpty()) {
+
+      final var anyErrors =
+        errors.stream()
+          .anyMatch(e -> switch (e.severity()) {
+            case WARNING -> false;
+            case ERROR -> true;
+          });
+
+      if (resultOpt.isEmpty() || anyErrors) {
         throw new BTException("Parse failed.", new IOException(), errors);
       }
 

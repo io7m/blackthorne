@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -30,10 +31,10 @@
 
   <properties>
     <com.io7m.immutables.version>2.7.5</com.io7m.immutables.version>
-    <com.io7m.junit.version>5.8.1</com.io7m.junit.version>
+    <com.io7m.junit.version>5.8.2</com.io7m.junit.version>
     <com.io7m.jxe.version>1.0.0</com.io7m.jxe.version>
     <io7m.api.previousVersion>1.2.1</io7m.api.previousVersion>
-    <jqwik.version>1.5.6</jqwik.version>
+    <jqwik.version>1.6.4</jqwik.version>
   </properties>
 
   <licenses>
@@ -145,17 +146,17 @@
       <dependency>
         <groupId>nl.jqno.equalsverifier</groupId>
         <artifactId>equalsverifier</artifactId>
-        <version>3.7.2</version>
+        <version>3.9</version>
       </dependency>
       <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-core</artifactId>
-        <version>3.5.13</version>
+        <version>4.3.1</version>
       </dependency>
       <dependency>
         <groupId>org.reflections</groupId>
         <artifactId>reflections</artifactId>
-        <version>0.9.12</version>
+        <version>0.10.2</version>
       </dependency>
       <dependency>
         <groupId>org.junit.jupiter</groupId>
