@@ -8,14 +8,14 @@
   <parent>
     <artifactId>com.io7m.blackthorne</artifactId>
     <groupId>com.io7m.blackthorne</groupId>
-    <version>1.3.0</version>
+    <version>1.3.1</version>
   </parent>
 
   <artifactId>com.io7m.blackthorne.api</artifactId>
 
   <name>com.io7m.blackthorne.api</name>
   <description>Typed XML stream processing (API)</description>
-  <url>http://github.com/io7m/blackthorne</url>
+  <url>https://www.io7m.com/software/blackthorne</url>
 
   <dependencies>
     <dependency>
