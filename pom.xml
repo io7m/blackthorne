@@ -14,7 +14,7 @@
 
   <groupId>com.io7m.blackthorne</groupId>
   <artifactId>com.io7m.blackthorne</artifactId>
-  <version>1.3.1</version>
+  <version>1.3.2-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>com.io7m.blackthorne</name>
@@ -33,7 +33,7 @@
     <com.io7m.immutables.version>2.7.5</com.io7m.immutables.version>
     <com.io7m.junit.version>5.8.2</com.io7m.junit.version>
     <com.io7m.jxe.version>1.0.0</com.io7m.jxe.version>
-    <io7m.api.previousVersion>1.2.1</io7m.api.previousVersion>
+    <io7m.api.previousVersion>1.3.0</io7m.api.previousVersion>
     <jqwik.version>1.6.4</jqwik.version>
   </properties>
 
