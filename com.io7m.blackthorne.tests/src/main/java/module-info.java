@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Mark Raynsford <code@io7m.com> https://www.io7m.com
+ * Copyright © 2023 Mark Raynsford <code@io7m.com> https://www.io7m.com
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,13 +14,22 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/**
- * Typed XML stream processing (API)
- */
+module com.io7m.blackthorne.tests
+{
+  requires com.io7m.blackthorne.api;
+  requires com.io7m.blackthorne.jxe;
 
-@Export
-@Version("2.0.0")
-package com.io7m.blackthorne.api;
+  requires transitive org.junit.jupiter.api;
+  requires transitive org.junit.jupiter.engine;
+  requires transitive org.junit.platform.commons;
+  requires transitive org.junit.platform.engine;
 
-import org.osgi.annotation.bundle.Export;
-import org.osgi.annotation.versioning.Version;
+  requires com.io7m.jxe.core;
+  requires net.bytebuddy.agent;
+  requires net.bytebuddy;
+  requires net.jqwik.api;
+  requires nl.jqno.equalsverifier;
+  requires org.slf4j;
+
+  exports com.io7m.blackthorne.tests;
+}

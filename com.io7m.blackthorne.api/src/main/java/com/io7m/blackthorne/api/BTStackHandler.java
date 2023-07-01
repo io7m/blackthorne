@@ -24,6 +24,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.ext.Locator2;
 
+import java.net.URI;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Objects;
@@ -133,7 +134,7 @@ public final class BTStackHandler<T>
       }
 
       final var qualifiedName =
-        BTQualifiedName.of(namespaceURI, localName);
+        new BTQualifiedName(URI.create(namespaceURI), localName);
 
       /*
        * If the handler stack is empty, then try to find a handler suitable for use as a root

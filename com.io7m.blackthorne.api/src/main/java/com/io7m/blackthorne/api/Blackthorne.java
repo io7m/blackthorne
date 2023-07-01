@@ -35,7 +35,7 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
 
-import static com.io7m.blackthorne.api.BTParseErrorType.Severity.ERROR;
+import static com.io7m.blackthorne.api.BTParseError.Severity.ERROR;
 
 /**
  * Convenience functions.
@@ -172,7 +172,10 @@ public final class Blackthorne
     Objects.requireNonNull(namespaceURI, "namespaceURI");
     Objects.requireNonNull(localName, "localName");
     Objects.requireNonNull(parser, "parser");
-    return forScalar(BTQualifiedName.of(namespaceURI, localName), parser);
+    return forScalar(
+      new BTQualifiedName(URI.create(namespaceURI), localName),
+      parser
+    );
   }
 
   /**
@@ -216,8 +219,9 @@ public final class Blackthorne
     Objects.requireNonNull(localName, "localName");
     Objects.requireNonNull(parser, "parser");
     return forScalarAttribute(
-      BTQualifiedName.of(namespaceURI, localName),
-      parser);
+      new BTQualifiedName(URI.create(namespaceURI), localName),
+      parser
+    );
   }
 
   /**
@@ -418,12 +422,15 @@ public final class Blackthorne
         );
 
       errors.add(
-        BTParseError.builder()
-          .setLexical(position)
-          .setSeverity(ERROR)
-          .setMessage(e.getMessage())
-          .build()
-      );
+        new BTParseError(
+          position,
+          ERROR,
+          "sax-parse-error",
+          e.getMessage(),
+          Map.of(),
+          Optional.empty(),
+          Optional.of(e)
+        ));
 
       throw new BTException(e.getMessage(), e, errors);
     } catch (final Exception e) {
@@ -433,12 +440,16 @@ public final class Blackthorne
         LexicalPosition.of(-1, -1, Optional.of(source));
 
       errors.add(
-        BTParseError.builder()
-          .setLexical(position)
-          .setSeverity(ERROR)
-          .setMessage(e.getMessage())
-          .build()
-      );
+        new BTParseError(
+          position,
+          ERROR,
+          "exception",
+          e.getMessage(),
+          Map.of(),
+          Optional.empty(),
+          Optional.of(e)
+        ));
+
       throw new BTException(e.getMessage(), e, errors);
     }
   }

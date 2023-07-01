@@ -33,6 +33,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import static com.io7m.blackthorne.api.BTParseError.Severity.ERROR;
+import static com.io7m.blackthorne.api.BTParseError.Severity.WARNING;
+
 /**
  * A dispatching handler that produces values of type {@code T}. The handler is responsible for
  * instantiating a content handler based on the received document namespace URI.
@@ -176,12 +179,16 @@ public final class BTContentHandler<T> extends DefaultHandler2
     LOG.warn("parse exception: ", e);
 
     this.errorReceiver.accept(
-      BTParseError.builder()
-        .setException(e)
-        .setSeverity(BTParseErrorType.Severity.WARNING)
-        .setMessage(messageOrException(e))
-        .setLexical(this.currentLexical())
-        .build());
+      new BTParseError(
+        this.currentLexical(),
+        WARNING,
+        "sax-warning",
+        messageOrException(e),
+        Map.of(),
+        Optional.empty(),
+        Optional.of(e)
+      )
+    );
   }
 
   @Override
@@ -192,12 +199,16 @@ public final class BTContentHandler<T> extends DefaultHandler2
 
     this.failed = true;
     this.errorReceiver.accept(
-      BTParseError.builder()
-        .setException(e)
-        .setSeverity(BTParseErrorType.Severity.ERROR)
-        .setMessage(messageOrException(e))
-        .setLexical(this.currentLexical())
-        .build());
+      new BTParseError(
+        this.currentLexical(),
+        ERROR,
+        "sax-error",
+        messageOrException(e),
+        Map.of(),
+        Optional.empty(),
+        Optional.of(e)
+      )
+    );
   }
 
   @Override
@@ -209,12 +220,17 @@ public final class BTContentHandler<T> extends DefaultHandler2
 
     this.failed = true;
     this.errorReceiver.accept(
-      BTParseError.builder()
-        .setException(e)
-        .setSeverity(BTParseErrorType.Severity.ERROR)
-        .setMessage(messageOrException(e))
-        .setLexical(this.currentLexical())
-        .build());
+      new BTParseError(
+        this.currentLexical(),
+        ERROR,
+        "sax-fatal-error",
+        messageOrException(e),
+        Map.of(),
+        Optional.empty(),
+        Optional.of(e)
+      )
+    );
+
     throw e;
   }
 
