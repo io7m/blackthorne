@@ -75,7 +75,7 @@ public record BTParseError(
    * The error severity
    */
 
-  enum Severity
+  public enum Severity
   {
     /**
      * The error is just a warning
