@@ -364,11 +364,12 @@ public final class Blackthorne
   /**
    * A convenience method to configure and execute a parser.
    *
-   * @param source       The source URI
-   * @param stream       The input stream
-   * @param xmlReaders   A supplier of XML readers
-   * @param rootElements The root element handlers
-   * @param <T>          The type of returned values
+   * @param source          The source URI
+   * @param stream          The input stream
+   * @param preserveLexical Whether to preserve lexical information
+   * @param xmlReaders      A supplier of XML readers
+   * @param rootElements    The root element handlers
+   * @param <T>             The type of returned values
    *
    * @return The parsed value
    *
@@ -378,14 +379,25 @@ public final class Blackthorne
   public static <T> T parse(
     final URI source,
     final InputStream stream,
+    final BTPreserveLexical preserveLexical,
     final Callable<XMLReader> xmlReaders,
     final Map<BTQualifiedName, BTElementHandlerConstructorType<?, T>> rootElements)
     throws BTException
   {
+    Objects.requireNonNull(source, "source");
+    Objects.requireNonNull(stream, "stream");
+    Objects.requireNonNull(preserveLexical, "preserveLexical");
+    Objects.requireNonNull(xmlReaders, "xmlReaders");
+    Objects.requireNonNull(rootElements, "rootElements");
+
     final var errors =
       new ArrayList<BTParseError>(32);
     final var contentHandler =
-      new BTContentHandler<>(source, errors::add, rootElements);
+      new BTContentHandler<>(
+        source,
+        errors::add,
+        preserveLexical,
+        rootElements);
 
     try {
       final var reader = xmlReaders.call();

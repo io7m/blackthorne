@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020 Mark Raynsford <code@io7m.com> https://www.io7m.com
+ * Copyright © 2023 Mark Raynsford <code@io7m.com> https://www.io7m.com
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,13 +14,26 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
+package com.io7m.blackthorne.api;
+
 /**
- * Blackthorne JXE integration.
+ * Whether lexical information from the XML parse should be preserved. If
+ * lexical information is discarded, all line and column numbers will be
+ * set to zero.
  */
 
-@Export
-@Version("2.0.0")
-package com.io7m.blackthorne.jxe;
+public enum BTPreserveLexical
+{
+  /**
+   * Preserve lexical information.
+   */
 
-import org.osgi.annotation.bundle.Export;
-import org.osgi.annotation.versioning.Version;
+  PRESERVE_LEXICAL_INFORMATION,
+
+  /**
+   * Discard lexical information.
+   */
+
+  DISCARD_LEXICAL_INFORMATION
+}

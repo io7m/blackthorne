@@ -23,6 +23,7 @@ import com.io7m.blackthorne.api.BTElementParsingContextType;
 import com.io7m.blackthorne.api.BTException;
 import com.io7m.blackthorne.api.BTIgnoreUnrecognizedElements;
 import com.io7m.blackthorne.api.BTParseError;
+import com.io7m.blackthorne.api.BTPreserveLexical;
 import com.io7m.blackthorne.api.BTQualifiedName;
 import com.io7m.blackthorne.api.BTScalarAttributeHandler;
 import com.io7m.blackthorne.api.Blackthorne;
@@ -54,6 +55,7 @@ import java.util.Optional;
 
 import static com.io7m.blackthorne.api.BTIgnoreUnrecognizedElements.DO_NOT_IGNORE_UNRECOGNIZED_ELEMENTS;
 import static com.io7m.blackthorne.api.BTIgnoreUnrecognizedElements.IGNORE_UNRECOGNIZED_ELEMENTS;
+import static com.io7m.blackthorne.api.BTPreserveLexical.PRESERVE_LEXICAL_INFORMATION;
 import static com.io7m.jxe.core.JXEXInclude.XINCLUDE_DISABLED;
 
 /**
@@ -127,6 +129,7 @@ public final class BlackthorneTest
       new BTContentHandler<Integer>(
         URI.create("urn:text"),
         this::logError,
+        PRESERVE_LEXICAL_INFORMATION,
         Map.of());
 
     final var reader = createReader();
@@ -158,6 +161,7 @@ public final class BlackthorneTest
       new BTContentHandler<Integer>(
         URI.create("urn:text"),
         this::logError,
+        PRESERVE_LEXICAL_INFORMATION,
         Map.of());
 
     final var reader = createReader();
@@ -251,7 +255,7 @@ public final class BlackthorneTest
       );
 
     final var handler =
-      new BTContentHandler<>(URI.create("urn:text"), this::logError, handlers);
+      new BTContentHandler<>(URI.create("urn:text"), this::logError,         PRESERVE_LEXICAL_INFORMATION, handlers);
 
     final var reader = createReader();
     reader.setContentHandler(handler);
@@ -323,7 +327,7 @@ public final class BlackthorneTest
       );
 
     final var handler =
-      new BTContentHandler<>(URI.create("urn:text"), this::logError, handlers);
+      new BTContentHandler<>(URI.create("urn:text"), this::logError,         PRESERVE_LEXICAL_INFORMATION, handlers);
 
     final var reader = createReader();
     reader.setContentHandler(handler);
@@ -351,7 +355,7 @@ public final class BlackthorneTest
       );
 
     final var handler =
-      new BTContentHandler<>(URI.create("urn:text"), this::logError, handlers);
+      new BTContentHandler<>(URI.create("urn:text"), this::logError,         PRESERVE_LEXICAL_INFORMATION, handlers);
 
     final var reader = createReader();
     reader.setContentHandler(handler);
@@ -379,7 +383,7 @@ public final class BlackthorneTest
       );
 
     final var handler =
-      new BTContentHandler<>(URI.create("urn:text"), this::logError, handlers);
+      new BTContentHandler<>(URI.create("urn:text"), this::logError,         PRESERVE_LEXICAL_INFORMATION, handlers);
 
     final var reader = createReader();
     reader.setContentHandler(handler);
@@ -407,7 +411,7 @@ public final class BlackthorneTest
       );
 
     final var handler =
-      new BTContentHandler<>(URI.create("urn:text"), this::logError, handlers);
+      new BTContentHandler<>(URI.create("urn:text"), this::logError,         PRESERVE_LEXICAL_INFORMATION, handlers);
 
     final var reader = createReader();
     reader.setContentHandler(handler);
@@ -435,7 +439,7 @@ public final class BlackthorneTest
       );
 
     final var handler =
-      new BTContentHandler<>(URI.create("urn:text"), this::logError, handlers);
+      new BTContentHandler<>(URI.create("urn:text"), this::logError,         PRESERVE_LEXICAL_INFORMATION, handlers);
 
     final var reader = createReader();
     reader.setContentHandler(handler);
@@ -465,7 +469,7 @@ public final class BlackthorneTest
       );
 
     final var handler =
-      new BTContentHandler<>(URI.create("urn:text"), this::logError, handlers);
+      new BTContentHandler<>(URI.create("urn:text"), this::logError,         PRESERVE_LEXICAL_INFORMATION, handlers);
 
     final var reader = createReader();
     reader.setContentHandler(handler);
@@ -500,7 +504,7 @@ public final class BlackthorneTest
       );
 
     final var handler =
-      new BTContentHandler<>(URI.create("urn:text"), this::logError, handlers);
+      new BTContentHandler<>(URI.create("urn:text"), this::logError,         PRESERVE_LEXICAL_INFORMATION, handlers);
 
     final var reader = createReader();
     reader.setContentHandler(handler);
@@ -535,7 +539,7 @@ public final class BlackthorneTest
       );
 
     final var handler =
-      new BTContentHandler<>(URI.create("urn:text"), this::logError, handlers);
+      new BTContentHandler<>(URI.create("urn:text"), this::logError,         PRESERVE_LEXICAL_INFORMATION, handlers);
 
     final var reader = createReader();
     reader.setContentHandler(handler);
@@ -610,6 +614,7 @@ public final class BlackthorneTest
       new BTContentHandler<>(
         URI.create("urn:text"),
         this::logError,
+        PRESERVE_LEXICAL_INFORMATION,
         Map.of(BTQualifiedName.of("urn:tests", "choices"), listHandler));
 
     final var reader = createReader();
@@ -648,6 +653,7 @@ public final class BlackthorneTest
       new BTContentHandler<>(
         URI.create("urn:text"),
         this::logError,
+        PRESERVE_LEXICAL_INFORMATION,
         Map.of(BTQualifiedName.of("urn:tests", "choices"), listHandler));
 
     final var reader = createReader();
@@ -686,6 +692,7 @@ public final class BlackthorneTest
       new BTContentHandler<>(
         URI.create("urn:text"),
         this::logError,
+        PRESERVE_LEXICAL_INFORMATION,
         Map.of(BTQualifiedName.of("urn:tests", "choices"), listHandler));
 
     final var reader = createReader();
@@ -727,6 +734,7 @@ public final class BlackthorneTest
       new BTContentHandler<>(
         URI.create("urn:text"),
         this::logError,
+        PRESERVE_LEXICAL_INFORMATION,
         Map.of(BTQualifiedName.of("urn:tests", "choices"), listHandler));
 
     final var reader = createReader();
@@ -767,6 +775,7 @@ public final class BlackthorneTest
       new BTContentHandler<>(
         URI.create("urn:text"),
         this::logError,
+        PRESERVE_LEXICAL_INFORMATION,
         Map.of(BTQualifiedName.of("urn:tests", "choices"), listHandler));
 
     final var reader = createReader();
@@ -1186,6 +1195,7 @@ public final class BlackthorneTest
       new JXEHardenedSAXParsers(),
       Optional.empty(),
       XINCLUDE_DISABLED,
+      PRESERVE_LEXICAL_INFORMATION,
       mappings
     );
 
@@ -1195,6 +1205,7 @@ public final class BlackthorneTest
       handlers,
       Optional.empty(),
       XINCLUDE_DISABLED,
+      PRESERVE_LEXICAL_INFORMATION,
       mappings
     );
 
@@ -1203,6 +1214,7 @@ public final class BlackthorneTest
       resourceStream("int.xml"),
       handlers,
       XINCLUDE_DISABLED,
+      PRESERVE_LEXICAL_INFORMATION,
       mappings
     );
 
@@ -1210,7 +1222,8 @@ public final class BlackthorneTest
       URI.create("urn:test"),
       resourceStream("int.xml"),
       handlers,
-      mappings
+      mappings,
+      PRESERVE_LEXICAL_INFORMATION
     );
   }
 
@@ -1234,6 +1247,7 @@ public final class BlackthorneTest
         Blackthorne.parse(
           URI.create("urn:test"),
           resourceStream("unparseable.xml"),
+          PRESERVE_LEXICAL_INFORMATION,
           () -> {
             return new JXEHardenedSAXParsers()
               .createXMLReaderNonValidating(

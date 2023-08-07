@@ -51,6 +51,7 @@ public final class BTContentHandler<T> extends DefaultHandler2
   private final URI fileURI;
   private final Consumer<BTParseError> errorReceiver;
   private Locator2 locator;
+  private final BTPreserveLexical preserveLexical;
   private Map<BTQualifiedName, BTElementHandlerConstructorType<?, T>> rootHandlers;
   private BTStackHandler<T> stackHandler;
   private boolean failed;
@@ -58,20 +59,24 @@ public final class BTContentHandler<T> extends DefaultHandler2
   /**
    * Construct a handler.
    *
-   * @param inFileURI       The URI of the file being parsed
-   * @param inErrorReceiver A receiver of error events
-   * @param inRootHandlers  The root handlers
+   * @param inFileURI         The URI of the file being parsed
+   * @param inPreserveLexical Whether to preserve lexical information
+   * @param inErrorReceiver   A receiver of error events
+   * @param inRootHandlers    The root handlers
    */
 
   public BTContentHandler(
     final URI inFileURI,
     final Consumer<BTParseError> inErrorReceiver,
+    final BTPreserveLexical inPreserveLexical,
     final Map<BTQualifiedName, BTElementHandlerConstructorType<?, T>> inRootHandlers)
   {
     this.fileURI =
       Objects.requireNonNull(inFileURI, "fileURI");
     this.errorReceiver =
       Objects.requireNonNull(inErrorReceiver, "errorReceiver");
+    this.preserveLexical =
+      Objects.requireNonNull(inPreserveLexical, "inPreserveLexical");
     this.rootHandlers =
       Map.copyOf(Objects.requireNonNull(inRootHandlers, "handlers"));
   }
@@ -123,7 +128,11 @@ public final class BTContentHandler<T> extends DefaultHandler2
     this.locator =
       (Locator2) Objects.requireNonNull(in_locator, "locator");
     this.stackHandler =
-      new BTStackHandler<>(this.locator, this.rootHandlers);
+      new BTStackHandler<>(
+        this.locator,
+        this.preserveLexical,
+        this.rootHandlers
+      );
   }
 
   @Override
@@ -283,10 +292,20 @@ public final class BTContentHandler<T> extends DefaultHandler2
   private static final class Builder<U> implements BTContentHandlerBuilderType<U>
   {
     private final HashMap<BTQualifiedName, BTElementHandlerConstructorType<?, U>> handlers;
+    private BTPreserveLexical preserveLexical;
 
     private Builder()
     {
       this.handlers = new HashMap<>(16);
+      this.preserveLexical = BTPreserveLexical.PRESERVE_LEXICAL_INFORMATION;
+    }
+
+    @Override
+    public BTContentHandlerBuilderType<U> setPreserveLexical(
+      final BTPreserveLexical lexical)
+    {
+      this.preserveLexical = Objects.requireNonNull(lexical, "lexical");
+      return this;
     }
 
     @Override
@@ -308,7 +327,9 @@ public final class BTContentHandler<T> extends DefaultHandler2
       return new BTContentHandler<>(
         Objects.requireNonNull(fileURI, "fileURI"),
         Objects.requireNonNull(errorConsumer, "errorConsumer"),
-        Map.copyOf(this.handlers));
+        this.preserveLexical,
+        Map.copyOf(this.handlers)
+      );
     }
   }
 }
