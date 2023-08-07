@@ -28,6 +28,17 @@ import java.util.function.Consumer;
 public interface BTContentHandlerBuilderType<T>
 {
   /**
+   * Set whether lexical information is preserved.
+   *
+   * @param lexical The preservation spec
+   *
+   * @return this
+   */
+
+  BTContentHandlerBuilderType<T> setPreserveLexical(
+    BTPreserveLexical lexical);
+
+  /**
    * Add a handler for root elements with {@code name}.
    *
    * @param name        The fully-qualified root element name
@@ -56,8 +67,9 @@ public interface BTContentHandlerBuilderType<T>
     final BTElementHandlerConstructorType<?, T> constructor)
   {
     return this.addHandler(
-      BTQualifiedName.of(namespaceURI, localName),
-      constructor);
+      new BTQualifiedName(URI.create(namespaceURI), localName),
+      constructor
+    );
   }
 
   /**

@@ -18,6 +18,7 @@ package com.io7m.blackthorne.jxe;
 
 import com.io7m.blackthorne.api.BTElementHandlerConstructorType;
 import com.io7m.blackthorne.api.BTException;
+import com.io7m.blackthorne.api.BTPreserveLexical;
 import com.io7m.blackthorne.api.BTQualifiedName;
 import com.io7m.blackthorne.api.Blackthorne;
 import com.io7m.jxe.core.JXEHardenedSAXParsers;
@@ -50,14 +51,15 @@ public final class BlackthorneJXE
   /**
    * Parse a document.
    *
-   * @param source        The source URI
-   * @param stream        The input stream
-   * @param parsers       A supplier of JXE hardened parsers
-   * @param rootElements  The root element handlers
-   * @param baseDirectory The base directory
-   * @param xinclude      The xinclude configuration
-   * @param schemas       The schemas
-   * @param <T>           The type of returned values
+   * @param source          The source URI
+   * @param stream          The input stream
+   * @param preserveLexical Whether to preserve lexical information
+   * @param parsers         A supplier of JXE hardened parsers
+   * @param rootElements    The root element handlers
+   * @param baseDirectory   The base directory
+   * @param xinclude        The xinclude configuration
+   * @param schemas         The schemas
+   * @param <T>             The type of returned values
    *
    * @return A parsed value
    *
@@ -71,6 +73,7 @@ public final class BlackthorneJXE
     final JXEHardenedSAXParsers parsers,
     final Optional<Path> baseDirectory,
     final JXEXInclude xinclude,
+    final BTPreserveLexical preserveLexical,
     final JXESchemaResolutionMappings schemas)
     throws BTException
   {
@@ -79,12 +82,14 @@ public final class BlackthorneJXE
     Objects.requireNonNull(parsers, "parsers");
     Objects.requireNonNull(rootElements, "rootElements");
     Objects.requireNonNull(baseDirectory, "baseDirectory");
+    Objects.requireNonNull(preserveLexical, "preserveLexical");
     Objects.requireNonNull(xinclude, "xinclude");
     Objects.requireNonNull(schemas, "schemas");
 
     return Blackthorne.parse(
       source,
       stream,
+      preserveLexical,
       () -> parsers.createXMLReader(baseDirectory, xinclude, schemas),
       rootElements
     );
@@ -93,13 +98,14 @@ public final class BlackthorneJXE
   /**
    * Parse a document. A default provider of hardened SAX parsers will be used.
    *
-   * @param source        The source URI
-   * @param stream        The input stream
-   * @param rootElements  The root element handlers
-   * @param baseDirectory The base directory
-   * @param xinclude      The xinclude configuration
-   * @param schemas       The schemas
-   * @param <T>           The type of returned values
+   * @param source          The source URI
+   * @param stream          The input stream
+   * @param preserveLexical Whether to preserve lexical information
+   * @param rootElements    The root element handlers
+   * @param baseDirectory   The base directory
+   * @param xinclude        The xinclude configuration
+   * @param schemas         The schemas
+   * @param <T>             The type of returned values
    *
    * @return A parsed value
    *
@@ -112,6 +118,7 @@ public final class BlackthorneJXE
     final Map<BTQualifiedName, BTElementHandlerConstructorType<?, T>> rootElements,
     final Optional<Path> baseDirectory,
     final JXEXInclude xinclude,
+    final BTPreserveLexical preserveLexical,
     final JXESchemaResolutionMappings schemas)
     throws BTException
   {
@@ -123,7 +130,14 @@ public final class BlackthorneJXE
     Objects.requireNonNull(schemas, "schemas");
 
     return parseAll(
-      source, stream, rootElements, PARSERS, baseDirectory, xinclude, schemas
+      source,
+      stream,
+      rootElements,
+      PARSERS,
+      baseDirectory,
+      xinclude,
+      preserveLexical,
+      schemas
     );
   }
 
@@ -131,12 +145,13 @@ public final class BlackthorneJXE
    * Parse a document. A default provider of hardened SAX parsers will be used.
    * No filesystem access is allowed.
    *
-   * @param source       The source URI
-   * @param stream       The input stream
-   * @param rootElements The root element handlers
-   * @param xinclude     The xinclude configuration
-   * @param schemas      The schemas
-   * @param <T>          The type of returned values
+   * @param source          The source URI
+   * @param stream          The input stream
+   * @param preserveLexical Whether to preserve lexical information
+   * @param rootElements    The root element handlers
+   * @param xinclude        The xinclude configuration
+   * @param schemas         The schemas
+   * @param <T>             The type of returned values
    *
    * @return A parsed value
    *
@@ -148,6 +163,7 @@ public final class BlackthorneJXE
     final InputStream stream,
     final Map<BTQualifiedName, BTElementHandlerConstructorType<?, T>> rootElements,
     final JXEXInclude xinclude,
+    final BTPreserveLexical preserveLexical,
     final JXESchemaResolutionMappings schemas)
     throws BTException
   {
@@ -158,7 +174,14 @@ public final class BlackthorneJXE
     Objects.requireNonNull(schemas, "schemas");
 
     return parseAll(
-      source, stream, rootElements, PARSERS, Optional.empty(), xinclude, schemas
+      source,
+      stream,
+      rootElements,
+      PARSERS,
+      Optional.empty(),
+      xinclude,
+      preserveLexical,
+      schemas
     );
   }
 
@@ -166,11 +189,12 @@ public final class BlackthorneJXE
    * Parse a document. A default provider of hardened SAX parsers will be used.
    * No filesystem access is allowed. No XInclude is allowed.
    *
-   * @param source       The source URI
-   * @param stream       The input stream
-   * @param rootElements The root element handlers
-   * @param schemas      The schemas
-   * @param <T>          The type of returned values
+   * @param source          The source URI
+   * @param stream          The input stream
+   * @param preserveLexical Whether to preserve lexical information
+   * @param rootElements    The root element handlers
+   * @param schemas         The schemas
+   * @param <T>             The type of returned values
    *
    * @return A parsed value
    *
@@ -181,7 +205,8 @@ public final class BlackthorneJXE
     final URI source,
     final InputStream stream,
     final Map<BTQualifiedName, BTElementHandlerConstructorType<?, T>> rootElements,
-    final JXESchemaResolutionMappings schemas)
+    final JXESchemaResolutionMappings schemas,
+    final BTPreserveLexical preserveLexical)
     throws BTException
   {
     Objects.requireNonNull(source, "source");
@@ -196,6 +221,7 @@ public final class BlackthorneJXE
       PARSERS,
       Optional.empty(),
       XINCLUDE_DISABLED,
+      preserveLexical,
       schemas
     );
   }

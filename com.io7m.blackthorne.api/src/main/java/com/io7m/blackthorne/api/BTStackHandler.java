@@ -24,6 +24,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.ext.Locator2;
 
+import java.net.URI;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Objects;
@@ -46,7 +47,6 @@ import java.util.stream.Collectors;
 public final class BTStackHandler<T>
 {
   private static final Logger LOG = LoggerFactory.getLogger(BTStackHandler.class);
-
   private final LinkedList<StackElement> stack;
   private final Context context;
   private final Map<BTQualifiedName, BTElementHandlerConstructorType<?, T>> rootHandlers;
@@ -56,17 +56,19 @@ public final class BTStackHandler<T>
   /**
    * Construct a new stack handler.
    *
-   * @param locator2       The underlying document locator
-   * @param inRootHandlers A set of root element handlers
+   * @param locator2        The underlying document locator
+   * @param preserveLexical Whether to preserve lexical information
+   * @param inRootHandlers  A set of root element handlers
    */
 
   public BTStackHandler(
     final Locator2 locator2,
+    final BTPreserveLexical preserveLexical,
     final Map<BTQualifiedName, BTElementHandlerConstructorType<?, T>> inRootHandlers)
   {
     this.stack = new LinkedList<>();
     this.rootHandlers = Objects.requireNonNull(inRootHandlers, "rootHandlers");
-    this.context = new Context(locator2);
+    this.context = new Context(locator2, preserveLexical);
   }
 
   private static String handlerNames(
@@ -133,7 +135,7 @@ public final class BTStackHandler<T>
       }
 
       final var qualifiedName =
-        BTQualifiedName.of(namespaceURI, localName);
+        new BTQualifiedName(URI.create(namespaceURI), localName);
 
       /*
        * If the handler stack is empty, then try to find a handler suitable for use as a root
@@ -218,8 +220,8 @@ public final class BTStackHandler<T>
 
       final var newHandler =
         Objects.requireNonNull(
-          childHandlerConstructor,
-          "childHandlerConstructor")
+            childHandlerConstructor,
+            "childHandlerConstructor")
           .create(this.context);
 
       Objects.requireNonNull(newHandler, "newHandler");
@@ -352,16 +354,28 @@ public final class BTStackHandler<T>
   private static final class Context implements BTElementParsingContextType
   {
     private final Locator2 locator2;
+    private final BTPreserveLexical preserveLexical;
+    private final FakeLocator fakeLocator;
 
-    private Context(final Locator2 inLocator)
+    private Context(
+      final Locator2 inLocator,
+      final BTPreserveLexical inPreserveLexical)
     {
-      this.locator2 = Objects.requireNonNull(inLocator, "locator2");
+      this.locator2 =
+        Objects.requireNonNull(inLocator, "locator2");
+      this.preserveLexical =
+        Objects.requireNonNull(inPreserveLexical, "preserveLexical");
+      this.fakeLocator =
+        new FakeLocator(this.locator2);
     }
 
     @Override
     public Locator2 documentLocator()
     {
-      return this.locator2;
+      return switch (this.preserveLexical) {
+        case PRESERVE_LEXICAL_INFORMATION -> this.locator2;
+        case DISCARD_LEXICAL_INFORMATION -> this.fakeLocator;
+      };
     }
 
     @Override
@@ -369,6 +383,53 @@ public final class BTStackHandler<T>
       final Exception e)
     {
       return new SAXParseException(e.getLocalizedMessage(), this.locator2, e);
+    }
+  }
+
+  private static final class FakeLocator implements Locator2
+  {
+    private final Locator2 delegate;
+
+    FakeLocator(
+      final Locator2 inDelegate)
+    {
+      this.delegate = Objects.requireNonNull(inDelegate, "locator2");
+    }
+
+    @Override
+    public String getXMLVersion()
+    {
+      return this.delegate.getXMLVersion();
+    }
+
+    @Override
+    public String getEncoding()
+    {
+      return this.delegate.getEncoding();
+    }
+
+    @Override
+    public String getPublicId()
+    {
+      return this.delegate.getPublicId();
+    }
+
+    @Override
+    public String getSystemId()
+    {
+      return this.delegate.getSystemId();
+    }
+
+    @Override
+    public int getLineNumber()
+    {
+      return 0;
+    }
+
+    @Override
+    public int getColumnNumber()
+    {
+      return 0;
     }
   }
 }

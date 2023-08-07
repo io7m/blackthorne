@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Mark Raynsford <code@io7m.com> https://www.io7m.com
+ * Copyright © 2023 Mark Raynsford <code@io7m.com> https://www.io7m.com
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,13 +14,26 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/**
- * Typed XML stream processing (API)
- */
 
-@Export
-@Version("2.0.0")
 package com.io7m.blackthorne.api;
 
-import org.osgi.annotation.bundle.Export;
-import org.osgi.annotation.versioning.Version;
+/**
+ * Whether lexical information from the XML parse should be preserved. If
+ * lexical information is discarded, all line and column numbers will be
+ * set to zero.
+ */
+
+public enum BTPreserveLexical
+{
+  /**
+   * Preserve lexical information.
+   */
+
+  PRESERVE_LEXICAL_INFORMATION,
+
+  /**
+   * Discard lexical information.
+   */
+
+  DISCARD_LEXICAL_INFORMATION
+}

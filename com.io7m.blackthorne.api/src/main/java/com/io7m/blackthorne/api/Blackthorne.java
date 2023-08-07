@@ -35,7 +35,7 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
 
-import static com.io7m.blackthorne.api.BTParseErrorType.Severity.ERROR;
+import static com.io7m.blackthorne.api.BTParseError.Severity.ERROR;
 
 /**
  * Convenience functions.
@@ -172,7 +172,10 @@ public final class Blackthorne
     Objects.requireNonNull(namespaceURI, "namespaceURI");
     Objects.requireNonNull(localName, "localName");
     Objects.requireNonNull(parser, "parser");
-    return forScalar(BTQualifiedName.of(namespaceURI, localName), parser);
+    return forScalar(
+      new BTQualifiedName(URI.create(namespaceURI), localName),
+      parser
+    );
   }
 
   /**
@@ -216,8 +219,9 @@ public final class Blackthorne
     Objects.requireNonNull(localName, "localName");
     Objects.requireNonNull(parser, "parser");
     return forScalarAttribute(
-      BTQualifiedName.of(namespaceURI, localName),
-      parser);
+      new BTQualifiedName(URI.create(namespaceURI), localName),
+      parser
+    );
   }
 
   /**
@@ -360,11 +364,12 @@ public final class Blackthorne
   /**
    * A convenience method to configure and execute a parser.
    *
-   * @param source       The source URI
-   * @param stream       The input stream
-   * @param xmlReaders   A supplier of XML readers
-   * @param rootElements The root element handlers
-   * @param <T>          The type of returned values
+   * @param source          The source URI
+   * @param stream          The input stream
+   * @param preserveLexical Whether to preserve lexical information
+   * @param xmlReaders      A supplier of XML readers
+   * @param rootElements    The root element handlers
+   * @param <T>             The type of returned values
    *
    * @return The parsed value
    *
@@ -374,14 +379,25 @@ public final class Blackthorne
   public static <T> T parse(
     final URI source,
     final InputStream stream,
+    final BTPreserveLexical preserveLexical,
     final Callable<XMLReader> xmlReaders,
     final Map<BTQualifiedName, BTElementHandlerConstructorType<?, T>> rootElements)
     throws BTException
   {
+    Objects.requireNonNull(source, "source");
+    Objects.requireNonNull(stream, "stream");
+    Objects.requireNonNull(preserveLexical, "preserveLexical");
+    Objects.requireNonNull(xmlReaders, "xmlReaders");
+    Objects.requireNonNull(rootElements, "rootElements");
+
     final var errors =
       new ArrayList<BTParseError>(32);
     final var contentHandler =
-      new BTContentHandler<>(source, errors::add, rootElements);
+      new BTContentHandler<>(
+        source,
+        errors::add,
+        preserveLexical,
+        rootElements);
 
     try {
       final var reader = xmlReaders.call();
@@ -418,12 +434,15 @@ public final class Blackthorne
         );
 
       errors.add(
-        BTParseError.builder()
-          .setLexical(position)
-          .setSeverity(ERROR)
-          .setMessage(e.getMessage())
-          .build()
-      );
+        new BTParseError(
+          position,
+          ERROR,
+          "sax-parse-error",
+          e.getMessage(),
+          Map.of(),
+          Optional.empty(),
+          Optional.of(e)
+        ));
 
       throw new BTException(e.getMessage(), e, errors);
     } catch (final Exception e) {
@@ -433,12 +452,16 @@ public final class Blackthorne
         LexicalPosition.of(-1, -1, Optional.of(source));
 
       errors.add(
-        BTParseError.builder()
-          .setLexical(position)
-          .setSeverity(ERROR)
-          .setMessage(e.getMessage())
-          .build()
-      );
+        new BTParseError(
+          position,
+          ERROR,
+          "exception",
+          e.getMessage(),
+          Map.of(),
+          Optional.empty(),
+          Optional.of(e)
+        ));
+
       throw new BTException(e.getMessage(), e, errors);
     }
   }
