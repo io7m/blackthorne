@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020 Mark Raynsford <code@io7m.com> https://www.io7m.com
+ * Copyright © 2018 Mark Raynsford <code@io7m.com> https://www.io7m.com
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,17 +14,29 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+package com.io7m.blackthorne.core;
+
 /**
- * Blackthorne JXE integration.
+ * A content handler constructor that produces handlers that produce values of type {@code A}
+ *
+ * @param <CT> The type of values produced by child handlers
+ * @param <RT> The type of produced values
  */
 
-module com.io7m.blackthorne.jxe
+public interface BTElementHandlerConstructorType<CT, RT>
 {
-  requires static org.osgi.annotation.bundle;
-  requires static org.osgi.annotation.versioning;
+  /**
+   * Construct a content handler.
+   *
+   * @param context The current parsing context
+   *
+   * @return A new content handler
+   *
+   * @throws Exception If required
+   * @see BTElementParsingContextType#parseException(Exception)
+   */
 
-  requires com.io7m.blackthorne.core;
-  requires com.io7m.jxe.core;
-
-  exports com.io7m.blackthorne.jxe;
+  BTElementHandlerType<? extends CT, ? extends RT> create(
+    BTElementParsingContextType context)
+    throws Exception;
 }

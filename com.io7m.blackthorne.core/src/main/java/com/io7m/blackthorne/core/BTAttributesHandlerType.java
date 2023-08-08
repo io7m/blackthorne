@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020 Mark Raynsford <code@io7m.com> https://www.io7m.com
+ * Copyright © 2019 Mark Raynsford <code@io7m.com> https://www.io7m.com
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,17 +14,32 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
+package com.io7m.blackthorne.core;
+
+import org.xml.sax.Attributes;
+
 /**
- * Blackthorne JXE integration.
+ * A function that, given a set of attributes, returns a {@code T}.
+ *
+ * @param <T> The type of returned values
  */
 
-module com.io7m.blackthorne.jxe
+public interface BTAttributesHandlerType<T>
 {
-  requires static org.osgi.annotation.bundle;
-  requires static org.osgi.annotation.versioning;
+  /**
+   * Parse attributes.
+   *
+   * @param context    The parsing context
+   * @param attributes The attributes
+   *
+   * @return A value of {@code T}
+   *
+   * @throws Exception On errors
+   */
 
-  requires com.io7m.blackthorne.core;
-  requires com.io7m.jxe.core;
-
-  exports com.io7m.blackthorne.jxe;
+  T parse(
+    BTElementParsingContextType context,
+    Attributes attributes)
+    throws Exception;
 }

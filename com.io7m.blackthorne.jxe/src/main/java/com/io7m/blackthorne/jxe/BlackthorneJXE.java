@@ -16,11 +16,11 @@
 
 package com.io7m.blackthorne.jxe;
 
-import com.io7m.blackthorne.api.BTElementHandlerConstructorType;
-import com.io7m.blackthorne.api.BTException;
-import com.io7m.blackthorne.api.BTPreserveLexical;
-import com.io7m.blackthorne.api.BTQualifiedName;
-import com.io7m.blackthorne.api.Blackthorne;
+import com.io7m.blackthorne.core.BTElementHandlerConstructorType;
+import com.io7m.blackthorne.core.BTException;
+import com.io7m.blackthorne.core.BTPreserveLexical;
+import com.io7m.blackthorne.core.BTQualifiedName;
+import com.io7m.blackthorne.core.Blackthorne;
 import com.io7m.jxe.core.JXEHardenedSAXParsers;
 import com.io7m.jxe.core.JXESchemaResolutionMappings;
 import com.io7m.jxe.core.JXEXInclude;

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020 Mark Raynsford <code@io7m.com> https://www.io7m.com
+ * Copyright © 2019 Mark Raynsford <code@io7m.com> https://www.io7m.com
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,16 +15,10 @@
  */
 
 /**
- * Blackthorne JXE integration.
+ * Typed XML stream processing (API)
  */
 
-module com.io7m.blackthorne.jxe
-{
-  requires static org.osgi.annotation.bundle;
-  requires static org.osgi.annotation.versioning;
+@Version("2.0.0")
+package com.io7m.blackthorne.core.internal;
 
-  requires com.io7m.blackthorne.core;
-  requires com.io7m.jxe.core;
-
-  exports com.io7m.blackthorne.jxe;
-}
+import org.osgi.annotation.versioning.Version;

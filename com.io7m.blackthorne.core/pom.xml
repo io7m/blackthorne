@@ -11,22 +11,33 @@
     <version>2.0.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>com.io7m.blackthorne.jxe</artifactId>
+  <artifactId>com.io7m.blackthorne.core</artifactId>
 
-  <name>com.io7m.blackthorne.jxe</name>
-  <description>Typed XML stream processing (JXE integration)</description>
+  <name>com.io7m.blackthorne.core</name>
+  <description>Typed XML stream processing (Core)</description>
   <url>https://www.io7m.com/software/blackthorne</url>
 
   <dependencies>
     <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>com.io7m.blackthorne.core</artifactId>
-      <version>${project.version}</version>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>com.io7m.jxe</groupId>
-      <artifactId>com.io7m.jxe.core</artifactId>
+      <groupId>com.io7m.seltzer</groupId>
+      <artifactId>com.io7m.seltzer.api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.io7m.junreachable</groupId>
+      <artifactId>com.io7m.junreachable.core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.io7m.jlexing</groupId>
+      <artifactId>com.io7m.jlexing.core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.io7m.jaffirm</groupId>
+      <artifactId>com.io7m.jaffirm.core</artifactId>
     </dependency>
 
     <dependency>

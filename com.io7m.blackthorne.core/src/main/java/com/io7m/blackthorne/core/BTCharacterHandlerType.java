@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020 Mark Raynsford <code@io7m.com> https://www.io7m.com
+ * Copyright © 2019 Mark Raynsford <code@io7m.com> https://www.io7m.com
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,17 +14,34 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
+package com.io7m.blackthorne.core;
+
 /**
- * Blackthorne JXE integration.
+ * A function that, given a string, returns a {@code T}.
+ *
+ * @param <T> The type of returned values
  */
 
-module com.io7m.blackthorne.jxe
+public interface BTCharacterHandlerType<T>
 {
-  requires static org.osgi.annotation.bundle;
-  requires static org.osgi.annotation.versioning;
+  /**
+   * Parse a text value.
+   *
+   * @param context    The parsing context
+   * @param characters The character array
+   * @param offset     The offset into the character array of the start of the data
+   * @param length     The number of characters in the data
+   *
+   * @return A value of {@code T}
+   *
+   * @throws Exception On errors
+   */
 
-  requires com.io7m.blackthorne.core;
-  requires com.io7m.jxe.core;
-
-  exports com.io7m.blackthorne.jxe;
+  T parse(
+    BTElementParsingContextType context,
+    char[] characters,
+    int offset,
+    int length)
+    throws Exception;
 }

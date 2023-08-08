@@ -17,7 +17,7 @@
 
 package com.io7m.blackthorne.tests;
 
-import com.io7m.blackthorne.api.BTQualifiedName;
+import com.io7m.blackthorne.core.BTQualifiedName;
 import net.jqwik.api.Arbitraries;
 import net.jqwik.api.Arbitrary;
 import net.jqwik.api.Combinators;
