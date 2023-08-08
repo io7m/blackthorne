@@ -207,14 +207,12 @@ public final class BTStackHandler<T>
             return;
           }
           case DO_NOT_IGNORE_UNRECOGNIZED_ELEMENTS: {
-            throw new SAXParseException(
-              BTMessages.format(
-                "errorHandlerUnrecognizedElement",
-                topMostHandler.getClass().getCanonicalName(),
-                namespaceURI,
-                localName,
-                handlerNames(childHandlers)),
-              this.context.documentLocator());
+            throw this.errorUnrecognizedElement(
+              namespaceURI,
+              localName,
+              topMostHandler,
+              (Map<BTQualifiedName, BTElementHandlerConstructorType<?, ?>>) childHandlers
+            );
           }
         }
       }
@@ -238,6 +236,39 @@ public final class BTStackHandler<T>
       this.failed = true;
       throw e;
     }
+  }
+
+  private SAXParseException errorUnrecognizedElement(
+    final String namespaceURI,
+    final String localName,
+    final BTElementHandlerType<?, ?> topMostHandler,
+    final Map<BTQualifiedName, BTElementHandlerConstructorType<?, ?>> childHandlers)
+  {
+    final var ex =
+      new SAXParseException(
+        BTMessages.format(
+          "errorHandlerUnrecognizedElement",
+          topMostHandler.getClass().getCanonicalName(),
+          namespaceURI,
+          localName,
+          handlerNames(childHandlers)),
+        this.context.documentLocator()
+      );
+
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("", ex);
+      LOG.debug("Handler: {}", topMostHandler.name());
+
+      for (int index = 0; index < this.stack.size(); ++index) {
+        LOG.debug(
+          "Stack [{}]: {}",
+          Integer.valueOf(index),
+          this.stack.get(index).handler.name()
+        );
+      }
+    }
+
+    return ex;
   }
 
   /**
