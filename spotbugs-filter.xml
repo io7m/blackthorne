@@ -74,6 +74,12 @@
     <Bug pattern="SE_BAD_FIELD"/>
   </Match>
 
+  <!-- The interface exists to be implemented. -->
+  <Match>
+    <Class name="com.io7m.blackthorne.core.BTException"/>
+    <Bug pattern="SCII_SPOILED_CHILD_INTERFACE_IMPLEMENTOR"/>
+  </Match>
+
   <Match>
     <Or>
       <Bug pattern="OPM_OVERLY_PERMISSIVE_METHOD"/>

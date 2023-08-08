@@ -30,7 +30,6 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
@@ -423,7 +422,7 @@ public final class Blackthorne
           });
 
       if (resultOpt.isEmpty() || anyErrors) {
-        throw new BTException("Parse failed.", new IOException(), errors);
+        throw new BTException("Parsing failed.", "parse-failed", errors);
       }
 
       return resultOpt.get();
@@ -437,7 +436,7 @@ public final class Blackthorne
           Optional.of(source)
         );
 
-      errors.add(
+      final var mainError =
         new BTParseError(
           position,
           BTParseError.Severity.ERROR,
@@ -446,16 +445,25 @@ public final class Blackthorne
           Map.of(),
           Optional.empty(),
           Optional.of(e)
-        ));
+        );
 
-      throw new BTException(e.getMessage(), e, errors);
+      errors.add(mainError);
+
+      throw new BTException(
+        e.getMessage(),
+        e,
+        mainError.errorCode(),
+        mainError.attributes(),
+        mainError.remediatingAction(),
+        errors
+      );
     } catch (final Exception e) {
-      LOG.error("error encountered during parsing: ", e);
+      LOG.error("Error encountered during parsing: ", e);
 
       final var position =
         LexicalPosition.of(-1, -1, Optional.of(source));
 
-      errors.add(
+      final var mainError =
         new BTParseError(
           position,
           BTParseError.Severity.ERROR,
@@ -464,9 +472,18 @@ public final class Blackthorne
           Map.of(),
           Optional.empty(),
           Optional.of(e)
-        ));
+        );
 
-      throw new BTException(e.getMessage(), e, errors);
+      errors.add(mainError);
+
+      throw new BTException(
+        e.getMessage(),
+        e,
+        mainError.errorCode(),
+        mainError.attributes(),
+        mainError.remediatingAction(),
+        errors
+      );
     }
   }
 

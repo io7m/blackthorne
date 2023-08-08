@@ -49,7 +49,7 @@ public final class BTListMonoHandler<S> implements BTElementHandlerType<S, List<
    * @param inElementName        The list element name
    * @param inChildElementName   The name of child elements
    * @param inItemHandler        The handler used for child elements
-   * @param inIgnoreUnrecognized Whether or not to ignore unrecognized elements
+   * @param inIgnoreUnrecognized Whether to ignore unrecognized elements
    */
 
   public BTListMonoHandler(

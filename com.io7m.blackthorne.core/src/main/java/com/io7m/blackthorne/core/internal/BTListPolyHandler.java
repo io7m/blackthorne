@@ -48,7 +48,7 @@ public final class BTListPolyHandler<S> implements BTElementHandlerType<S, List<
    *
    * @param inElementName        The list element name
    * @param inItemHandlers       The child item handlers
-   * @param inIgnoreUnrecognized Whether or not to ignore unrecognized elements
+   * @param inIgnoreUnrecognized Whether to ignore unrecognized elements
    */
 
   public BTListPolyHandler(
