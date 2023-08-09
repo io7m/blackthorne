@@ -341,3 +341,58 @@ Function<B, C> f;
 BTElementHandlerType<A, B> h;
 BTElementHandlerType<A, C> g = Blackthorne.map(h, f);
 ```
+
+#### Parsing
+
+The `Blackthorne` class contains a convenient `parse` method that takes
+a set of handlers (one per expected root element), and returns the sum of
+the parsed data from the tree of handlers:
+
+```
+var data = Blackthorne.parse(
+  sourceURI,
+  inputStream,
+  PRESERVE_LEXICAL_INFORMATION,
+  () -> createXMLReader(),
+  handlers
+);
+```
+
+The `sourceURI` is the URI of the input stream, used for lexical/diagnostic
+information. The `inputStream` is the input stream containing the document.
+The `PRESERVE_LEXICAL_INFORMATION` enumeration value instructs the `Blackthorne`
+API to leave the lexical information delivered by the stream parser untouched.
+The `handlers` parameter is the map of handlers, and the lambda expression
+is a function that returns a value of type `XMLReader` on demand. It is
+recommended that [jxe](https://github.com/io7m/jxe) be used as the factory
+of XML readers as it configures the readers using very secure defaults, and
+enforces that all incoming documents _must_ validate according to one or more
+given schemas.
+
+The type of the value parsed by the `parse` function is dependent upon the
+common supertype of the return types of the passed `handlers`.
+
+#### JXE
+
+The `blackthorne` package provides a `com.io7m.blackthorne.jxe` module that
+contains a slightly more convenient API:
+
+```
+var data = BlackthorneJXE.parse(
+  sourceURI,
+  inputStream,
+  handlers,
+  Optional.empty(),
+  XINCLUDE_DISABLED,
+  PRESERVE_LEXICAL_INFORMATION,
+  mappings
+);
+```
+
+The `sourceURI`, `inputStream`, `handlers`, and `PRESERVE_LEXICAL_INFORMATION`
+arguments mean the same as in the [example above](#parsing). The
+`XINCLUDE_DISABLED` argument disables XInclude processing. The `mappings`
+parameter provides a set of schemas against which the `inputStream` will be
+validated. The `Optional.empty()` parameter is actually the base directory
+used to resolve relative document names (which is irrelevant, because XInclude
+is disabled).
