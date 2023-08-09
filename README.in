@@ -160,7 +160,7 @@ There are several things to note here:
   * The `BTElementHandlerType` is parameterized by the types of values
     it can receive from child handlers, and the type of values it returns
     to its parent handler. Because the handler will never create a child
-    handler, we can claim the handler accepts anything (because it will never
+    handler, we can claim the handler accepts everything (because it will never
     receive anything) and so the type of child values is `Object`. The
     handler returns a value of type `BigInteger`.
 
