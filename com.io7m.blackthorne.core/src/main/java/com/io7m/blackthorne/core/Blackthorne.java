@@ -234,7 +234,7 @@ public final class Blackthorne
    * @param elementName        The name of the element
    * @param childElementName   The name of the child element
    * @param itemHandler        A handler for child elements
-   * @param ignoreUnrecognized Whether or not unrecognized child elements should be ignored
+   * @param ignoreUnrecognized Whether unrecognized child elements should be ignored
    * @param <S>                The type of returned scalar values
    *
    * @return A content handler constructor
@@ -264,7 +264,7 @@ public final class Blackthorne
    *
    * @param elementName        The name of the element
    * @param itemHandlers       Handlers for child elements
-   * @param ignoreUnrecognized Whether or not unrecognized child elements should be ignored
+   * @param ignoreUnrecognized Whether unrecognized child elements should be ignored
    * @param <S>                The type of returned scalar values
    *
    * @return A content handler constructor
