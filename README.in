@@ -282,7 +282,7 @@ documents that can be sensibly typed. A given element handler
 If the child elements of the handler can be of a set of different types, then
 it would be desirable (for the sake of type-safety and readability) for those
 child elements to have a common supertype that is not `Object`. The best way to
-do this, schema allowing, is to use a sealedinterface:
+do this, schema allowing, is to use a sealed interface:
 
 ```
 sealed interface T { }
