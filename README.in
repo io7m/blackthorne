@@ -365,9 +365,9 @@ API to leave the lexical information delivered by the stream parser untouched.
 The `handlers` parameter is the map of handlers, and the lambda expression
 is a function that returns a value of type `XMLReader` on demand. It is
 recommended that [jxe](https://github.com/io7m/jxe) be used as the factory
-of XML readers as it configures the readers using very secure defaults, and
-enforces that all incoming documents _must_ validate according to one or more
-given schemas.
+of XML readers as it configures the readers using secure defaults
+(preventing entity expansion attacks and other problems), and enforces that
+all incoming documents _must_ validate according to one or more given schemas.
 
 The type of the value parsed by the `parse` function is dependent upon the
 common supertype of the return types of the passed `handlers`.
