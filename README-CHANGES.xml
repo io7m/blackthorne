@@ -48,14 +48,14 @@
         <c:change date="2022-04-09T00:00:00+00:00" summary="Update jlexing"/>
       </c:changes>
     </c:release>
-    <c:release date="2023-08-08T21:04:05+00:00" is-open="true" ticket-system="com.github.io7m.blackthorne" version="2.0.0">
+    <c:release date="2023-08-10T15:54:41+00:00" is-open="false" ticket-system="com.github.io7m.blackthorne" version="2.0.0">
       <c:changes>
         <c:change compatible="false" date="2023-08-08T00:00:00+00:00" summary="Make parse errors into Seltzer errors."/>
         <c:change compatible="false" date="2023-08-08T00:00:00+00:00" summary="Remove immutables.org types in favour of plain records."/>
         <c:change date="2023-08-08T00:00:00+00:00" summary="Update dependencies."/>
         <c:change compatible="false" date="2023-08-08T00:00:00+00:00" summary="Add the ability to opt-out of receiving lexical information from parsers."/>
         <c:change compatible="false" date="2023-08-08T00:00:00+00:00" summary="Rename com.io7m.blackthorne.api -&gt; com.io7m.blackthorne.core."/>
-        <c:change compatible="false" date="2023-08-08T21:04:05+00:00" summary="Upgrade BTException to be a structured (Seltzer) exception."/>
+        <c:change compatible="false" date="2023-08-08T00:00:00+00:00" summary="Upgrade BTException to be a structured (Seltzer) exception."/>
       </c:changes>
     </c:release>
   </c:releases>
