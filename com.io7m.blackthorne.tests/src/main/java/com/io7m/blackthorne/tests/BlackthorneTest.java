@@ -16,17 +16,16 @@
 
 package com.io7m.blackthorne.tests;
 
-import com.io7m.blackthorne.api.BTContentHandler;
-import com.io7m.blackthorne.api.BTElementHandlerConstructorType;
-import com.io7m.blackthorne.api.BTElementHandlerType;
-import com.io7m.blackthorne.api.BTElementParsingContextType;
-import com.io7m.blackthorne.api.BTException;
-import com.io7m.blackthorne.api.BTIgnoreUnrecognizedElements;
-import com.io7m.blackthorne.api.BTParseError;
-import com.io7m.blackthorne.api.BTPreserveLexical;
-import com.io7m.blackthorne.api.BTQualifiedName;
-import com.io7m.blackthorne.api.BTScalarAttributeHandler;
-import com.io7m.blackthorne.api.Blackthorne;
+import com.io7m.blackthorne.core.BTElementHandlerConstructorType;
+import com.io7m.blackthorne.core.BTElementHandlerType;
+import com.io7m.blackthorne.core.BTElementParsingContextType;
+import com.io7m.blackthorne.core.BTException;
+import com.io7m.blackthorne.core.BTIgnoreUnrecognizedElements;
+import com.io7m.blackthorne.core.BTParseError;
+import com.io7m.blackthorne.core.BTQualifiedName;
+import com.io7m.blackthorne.core.Blackthorne;
+import com.io7m.blackthorne.core.internal.BTContentHandler;
+import com.io7m.blackthorne.core.internal.BTScalarAttributeHandler;
 import com.io7m.blackthorne.jxe.BlackthorneJXE;
 import com.io7m.jxe.core.JXEHardenedSAXParsers;
 import com.io7m.jxe.core.JXESchemaDefinition;
@@ -53,10 +52,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-import static com.io7m.blackthorne.api.BTIgnoreUnrecognizedElements.DO_NOT_IGNORE_UNRECOGNIZED_ELEMENTS;
-import static com.io7m.blackthorne.api.BTIgnoreUnrecognizedElements.IGNORE_UNRECOGNIZED_ELEMENTS;
-import static com.io7m.blackthorne.api.BTPreserveLexical.PRESERVE_LEXICAL_INFORMATION;
+import static com.io7m.blackthorne.core.BTIgnoreUnrecognizedElements.DO_NOT_IGNORE_UNRECOGNIZED_ELEMENTS;
+import static com.io7m.blackthorne.core.BTIgnoreUnrecognizedElements.IGNORE_UNRECOGNIZED_ELEMENTS;
+import static com.io7m.blackthorne.core.BTPreserveLexical.PRESERVE_LEXICAL_INFORMATION;
 import static com.io7m.jxe.core.JXEXInclude.XINCLUDE_DISABLED;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Tests for the API.
@@ -64,7 +67,9 @@ import static com.io7m.jxe.core.JXEXInclude.XINCLUDE_DISABLED;
 
 public final class BlackthorneTest
 {
-  private static final Logger LOG = LoggerFactory.getLogger(BlackthorneTest.class);
+  private static final Logger LOG =
+    LoggerFactory.getLogger(BlackthorneTest.class);
+
   private ArrayList<BTParseError> errors;
 
   private static XMLReader createReader()
@@ -137,12 +142,12 @@ public final class BlackthorneTest
     reader.setErrorHandler(handler);
     reader.parse(resource("no_namespace.xml"));
 
-    Assertions.assertTrue(handler.failed());
-    Assertions.assertEquals(1, this.errors.size());
+    assertTrue(handler.failed());
+    assertEquals(1, this.errors.size());
 
     {
       final var error = this.errors.remove(0);
-      Assertions.assertTrue(error.message().contains(
+      assertTrue(error.message().contains(
         "not allowed as a root element"));
     }
   }
@@ -154,7 +159,7 @@ public final class BlackthorneTest
    */
 
   @Test
-  public void testUnknownSchema()
+  public void testUnknownSchema0()
     throws Exception
   {
     final var handler =
@@ -169,14 +174,42 @@ public final class BlackthorneTest
     reader.setErrorHandler(handler);
     reader.parse(resource("unknown_namespace.xml"));
 
-    Assertions.assertTrue(handler.failed());
-    Assertions.assertEquals(1, this.errors.size());
+    assertTrue(handler.failed());
+    assertEquals(1, this.errors.size());
 
     {
       final var error = this.errors.remove(0);
-      Assertions.assertTrue(error.message().contains(
+      assertTrue(error.message().contains(
         "not allowed as a root element"));
     }
+  }
+
+  /**
+   * A document that doesn't contain a known schema declaration is unusable.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testUnknownSchema1()
+    throws Exception
+  {
+    final Map<BTQualifiedName, BTElementHandlerConstructorType<?, BigInteger>> handlers =
+      Map.ofEntries(
+        Map.entry(BTQualifiedName.of("urn:tests", "int"), IntHandler::new)
+      );
+
+    final var ex =
+      assertThrows(BTException.class, () -> {
+        Blackthorne.parse(
+          URI.create("urn:stdin"),
+          resourceURL("unknown_namespace.xml")
+            .openStream(),
+          PRESERVE_LEXICAL_INFORMATION,
+          BlackthorneTest::createReader,
+          handlers
+        );
+      });
   }
 
   /**
@@ -199,12 +232,12 @@ public final class BlackthorneTest
     reader.setErrorHandler(handler);
     reader.parse(resource("not_valid.xml"));
 
-    Assertions.assertTrue(handler.failed());
-    Assertions.assertEquals(1, this.errors.size());
+    assertTrue(handler.failed());
+    assertEquals(1, this.errors.size());
 
     {
       final var error = this.errors.remove(0);
-      Assertions.assertTrue(error.message().contains(
+      assertTrue(error.message().contains(
         "not allowed as a root element"));
     }
   }
@@ -229,12 +262,12 @@ public final class BlackthorneTest
     reader.setErrorHandler(handler);
     reader.parse(resource("int_invalid.xml"));
 
-    Assertions.assertTrue(handler.failed());
-    Assertions.assertEquals(1, this.errors.size());
+    assertTrue(handler.failed());
+    assertEquals(1, this.errors.size());
 
     {
       final var error = this.errors.remove(0);
-      Assertions.assertTrue(error.message().contains(
+      assertTrue(error.message().contains(
         "does not recognize this element"));
     }
   }
@@ -255,16 +288,20 @@ public final class BlackthorneTest
       );
 
     final var handler =
-      new BTContentHandler<>(URI.create("urn:text"), this::logError,         PRESERVE_LEXICAL_INFORMATION, handlers);
+      new BTContentHandler<>(
+        URI.create("urn:text"),
+        this::logError,
+        PRESERVE_LEXICAL_INFORMATION,
+        handlers);
 
     final var reader = createReader();
     reader.setContentHandler(handler);
     reader.setErrorHandler(handler);
     reader.parse(resource("int.xml"));
 
-    Assertions.assertFalse(handler.failed());
-    Assertions.assertEquals(0, this.errors.size());
-    Assertions.assertEquals(BigInteger.valueOf(23L), handler.result().get());
+    assertFalse(handler.failed());
+    assertEquals(0, this.errors.size());
+    assertEquals(BigInteger.valueOf(23L), handler.result().get());
   }
 
   /**
@@ -293,9 +330,9 @@ public final class BlackthorneTest
     reader.setErrorHandler(handler);
     reader.parse(resource("intA.xml"));
 
-    Assertions.assertFalse(handler.failed());
-    Assertions.assertEquals(0, this.errors.size());
-    Assertions.assertEquals(BigInteger.valueOf(23L), handler.result().get());
+    assertFalse(handler.failed());
+    assertEquals(0, this.errors.size());
+    assertEquals(BigInteger.valueOf(23L), handler.result().get());
   }
 
   private static Number parseIntAttribute(
@@ -327,16 +364,20 @@ public final class BlackthorneTest
       );
 
     final var handler =
-      new BTContentHandler<>(URI.create("urn:text"), this::logError,         PRESERVE_LEXICAL_INFORMATION, handlers);
+      new BTContentHandler<>(
+        URI.create("urn:text"),
+        this::logError,
+        PRESERVE_LEXICAL_INFORMATION,
+        handlers);
 
     final var reader = createReader();
     reader.setContentHandler(handler);
     reader.setErrorHandler(handler);
     reader.parse(resource("double.xml"));
 
-    Assertions.assertFalse(handler.failed());
-    Assertions.assertEquals(0, this.errors.size());
-    Assertions.assertEquals(Double.valueOf(25.10), handler.result().get());
+    assertFalse(handler.failed());
+    assertEquals(0, this.errors.size());
+    assertEquals(Double.valueOf(25.10), handler.result().get());
   }
 
   /**
@@ -355,16 +396,20 @@ public final class BlackthorneTest
       );
 
     final var handler =
-      new BTContentHandler<>(URI.create("urn:text"), this::logError,         PRESERVE_LEXICAL_INFORMATION, handlers);
+      new BTContentHandler<>(
+        URI.create("urn:text"),
+        this::logError,
+        PRESERVE_LEXICAL_INFORMATION,
+        handlers);
 
     final var reader = createReader();
     reader.setContentHandler(handler);
     reader.setErrorHandler(handler);
     reader.parse(resource("byte.xml"));
 
-    Assertions.assertFalse(handler.failed());
-    Assertions.assertEquals(0, this.errors.size());
-    Assertions.assertEquals(Byte.valueOf((byte) 10), handler.result().get());
+    assertFalse(handler.failed());
+    assertEquals(0, this.errors.size());
+    assertEquals(Byte.valueOf((byte) 10), handler.result().get());
   }
 
   /**
@@ -383,16 +428,20 @@ public final class BlackthorneTest
       );
 
     final var handler =
-      new BTContentHandler<>(URI.create("urn:text"), this::logError,         PRESERVE_LEXICAL_INFORMATION, handlers);
+      new BTContentHandler<>(
+        URI.create("urn:text"),
+        this::logError,
+        PRESERVE_LEXICAL_INFORMATION,
+        handlers);
 
     final var reader = createReader();
     reader.setContentHandler(handler);
     reader.setErrorHandler(handler);
     reader.parse(resource("choice0.xml"));
 
-    Assertions.assertFalse(handler.failed());
-    Assertions.assertEquals(0, this.errors.size());
-    Assertions.assertEquals(BigInteger.valueOf(23L), handler.result().get());
+    assertFalse(handler.failed());
+    assertEquals(0, this.errors.size());
+    assertEquals(BigInteger.valueOf(23L), handler.result().get());
   }
 
   /**
@@ -411,16 +460,20 @@ public final class BlackthorneTest
       );
 
     final var handler =
-      new BTContentHandler<>(URI.create("urn:text"), this::logError,         PRESERVE_LEXICAL_INFORMATION, handlers);
+      new BTContentHandler<>(
+        URI.create("urn:text"),
+        this::logError,
+        PRESERVE_LEXICAL_INFORMATION,
+        handlers);
 
     final var reader = createReader();
     reader.setContentHandler(handler);
     reader.setErrorHandler(handler);
     reader.parse(resource("choice1.xml"));
 
-    Assertions.assertFalse(handler.failed());
-    Assertions.assertEquals(0, this.errors.size());
-    Assertions.assertEquals(Double.valueOf(25.10), handler.result().get());
+    assertFalse(handler.failed());
+    assertEquals(0, this.errors.size());
+    assertEquals(Double.valueOf(25.10), handler.result().get());
   }
 
   /**
@@ -439,16 +492,20 @@ public final class BlackthorneTest
       );
 
     final var handler =
-      new BTContentHandler<>(URI.create("urn:text"), this::logError,         PRESERVE_LEXICAL_INFORMATION, handlers);
+      new BTContentHandler<>(
+        URI.create("urn:text"),
+        this::logError,
+        PRESERVE_LEXICAL_INFORMATION,
+        handlers);
 
     final var reader = createReader();
     reader.setContentHandler(handler);
     reader.setErrorHandler(handler);
     reader.parse(resource("choice2.xml"));
 
-    Assertions.assertFalse(handler.failed());
-    Assertions.assertEquals(0, this.errors.size());
-    Assertions.assertEquals(Byte.valueOf((byte) 10), handler.result().get());
+    assertFalse(handler.failed());
+    assertEquals(0, this.errors.size());
+    assertEquals(Byte.valueOf((byte) 10), handler.result().get());
   }
 
   /**
@@ -469,21 +526,25 @@ public final class BlackthorneTest
       );
 
     final var handler =
-      new BTContentHandler<>(URI.create("urn:text"), this::logError,         PRESERVE_LEXICAL_INFORMATION, handlers);
+      new BTContentHandler<>(
+        URI.create("urn:text"),
+        this::logError,
+        PRESERVE_LEXICAL_INFORMATION,
+        handlers);
 
     final var reader = createReader();
     reader.setContentHandler(handler);
     reader.setErrorHandler(handler);
     reader.parse(resource("choices0.xml"));
 
-    Assertions.assertFalse(handler.failed());
-    Assertions.assertEquals(0, this.errors.size());
+    assertFalse(handler.failed());
+    assertEquals(0, this.errors.size());
 
     final var numbers = handler.result().get();
-    Assertions.assertEquals(BigInteger.valueOf(23L), numbers.get(0));
-    Assertions.assertEquals(Double.valueOf(25.10), numbers.get(1));
-    Assertions.assertEquals(Byte.valueOf((byte) 10), numbers.get(2));
-    Assertions.assertEquals(3, numbers.size());
+    assertEquals(BigInteger.valueOf(23L), numbers.get(0));
+    assertEquals(Double.valueOf(25.10), numbers.get(1));
+    assertEquals(Byte.valueOf((byte) 10), numbers.get(2));
+    assertEquals(3, numbers.size());
   }
 
   /**
@@ -504,21 +565,25 @@ public final class BlackthorneTest
       );
 
     final var handler =
-      new BTContentHandler<>(URI.create("urn:text"), this::logError,         PRESERVE_LEXICAL_INFORMATION, handlers);
+      new BTContentHandler<>(
+        URI.create("urn:text"),
+        this::logError,
+        PRESERVE_LEXICAL_INFORMATION,
+        handlers);
 
     final var reader = createReader();
     reader.setContentHandler(handler);
     reader.setErrorHandler(handler);
     reader.parse(resource("choices1.xml"));
 
-    Assertions.assertFalse(handler.failed());
-    Assertions.assertEquals(0, this.errors.size());
+    assertFalse(handler.failed());
+    assertEquals(0, this.errors.size());
 
     final var numbers = handler.result().get();
-    Assertions.assertEquals(BigInteger.valueOf(23L), numbers.get(0));
-    Assertions.assertEquals(Double.valueOf(25.10), numbers.get(1));
-    Assertions.assertEquals(Byte.valueOf((byte) 10), numbers.get(2));
-    Assertions.assertEquals(3, numbers.size());
+    assertEquals(BigInteger.valueOf(23L), numbers.get(0));
+    assertEquals(Double.valueOf(25.10), numbers.get(1));
+    assertEquals(Byte.valueOf((byte) 10), numbers.get(2));
+    assertEquals(3, numbers.size());
   }
 
   /**
@@ -539,21 +604,25 @@ public final class BlackthorneTest
       );
 
     final var handler =
-      new BTContentHandler<>(URI.create("urn:text"), this::logError,         PRESERVE_LEXICAL_INFORMATION, handlers);
+      new BTContentHandler<>(
+        URI.create("urn:text"),
+        this::logError,
+        PRESERVE_LEXICAL_INFORMATION,
+        handlers);
 
     final var reader = createReader();
     reader.setContentHandler(handler);
     reader.setErrorHandler(handler);
     reader.parse(resource("choices2.xml"));
 
-    Assertions.assertFalse(handler.failed());
-    Assertions.assertEquals(0, this.errors.size());
+    assertFalse(handler.failed());
+    assertEquals(0, this.errors.size());
 
     final var numbers = handler.result().get();
-    Assertions.assertEquals(BigInteger.valueOf(23L), numbers.get(0));
-    Assertions.assertEquals(Double.valueOf(25.10), numbers.get(1));
-    Assertions.assertEquals(Byte.valueOf((byte) 20), numbers.get(2));
-    Assertions.assertEquals(3, numbers.size());
+    assertEquals(BigInteger.valueOf(23L), numbers.get(0));
+    assertEquals(Double.valueOf(25.10), numbers.get(1));
+    assertEquals(Byte.valueOf((byte) 20), numbers.get(2));
+    assertEquals(3, numbers.size());
   }
 
   /**
@@ -583,14 +652,14 @@ public final class BlackthorneTest
     reader.setErrorHandler(handler);
     reader.parse(resource("choices0.xml"));
 
-    Assertions.assertFalse(handler.failed());
-    Assertions.assertEquals(0, this.errors.size());
+    assertFalse(handler.failed());
+    assertEquals(0, this.errors.size());
 
     final var numbers = handler.result().get();
-    Assertions.assertEquals(BigInteger.valueOf(23L), numbers.get(0));
-    Assertions.assertEquals(Double.valueOf(25.10), numbers.get(1));
-    Assertions.assertEquals(Byte.valueOf((byte) 10), numbers.get(2));
-    Assertions.assertEquals(3, numbers.size());
+    assertEquals(BigInteger.valueOf(23L), numbers.get(0));
+    assertEquals(Double.valueOf(25.10), numbers.get(1));
+    assertEquals(Byte.valueOf((byte) 10), numbers.get(2));
+    assertEquals(3, numbers.size());
   }
 
   /**
@@ -622,14 +691,14 @@ public final class BlackthorneTest
     reader.setErrorHandler(handler);
     reader.parse(resource("choices0.xml"));
 
-    Assertions.assertFalse(handler.failed());
-    Assertions.assertEquals(0, this.errors.size());
+    assertFalse(handler.failed());
+    assertEquals(0, this.errors.size());
 
     final var numbers = handler.result().get();
-    Assertions.assertEquals(BigInteger.valueOf(23L), numbers.get(0));
-    Assertions.assertEquals(Double.valueOf(25.10), numbers.get(1));
-    Assertions.assertEquals(Byte.valueOf((byte) 10), numbers.get(2));
-    Assertions.assertEquals(3, numbers.size());
+    assertEquals(BigInteger.valueOf(23L), numbers.get(0));
+    assertEquals(Double.valueOf(25.10), numbers.get(1));
+    assertEquals(Byte.valueOf((byte) 10), numbers.get(2));
+    assertEquals(3, numbers.size());
   }
 
   /**
@@ -661,14 +730,14 @@ public final class BlackthorneTest
     reader.setErrorHandler(handler);
     reader.parse(resource("choices1.xml"));
 
-    Assertions.assertFalse(handler.failed());
-    Assertions.assertEquals(0, this.errors.size());
+    assertFalse(handler.failed());
+    assertEquals(0, this.errors.size());
 
     final var numbers = handler.result().get();
-    Assertions.assertEquals(BigInteger.valueOf(23L), numbers.get(0));
-    Assertions.assertEquals(Double.valueOf(25.10), numbers.get(1));
-    Assertions.assertEquals(Byte.valueOf((byte) 10), numbers.get(2));
-    Assertions.assertEquals(3, numbers.size());
+    assertEquals(BigInteger.valueOf(23L), numbers.get(0));
+    assertEquals(Double.valueOf(25.10), numbers.get(1));
+    assertEquals(Byte.valueOf((byte) 10), numbers.get(2));
+    assertEquals(3, numbers.size());
   }
 
   /**
@@ -700,14 +769,14 @@ public final class BlackthorneTest
     reader.setErrorHandler(handler);
     reader.parse(resource("choices2.xml"));
 
-    Assertions.assertFalse(handler.failed());
-    Assertions.assertEquals(0, this.errors.size());
+    assertFalse(handler.failed());
+    assertEquals(0, this.errors.size());
 
     final var numbers = handler.result().get();
-    Assertions.assertEquals(BigInteger.valueOf(23L), numbers.get(0));
-    Assertions.assertEquals(Double.valueOf(25.10), numbers.get(1));
-    Assertions.assertEquals(Byte.valueOf((byte) 20), numbers.get(2));
-    Assertions.assertEquals(3, numbers.size());
+    assertEquals(BigInteger.valueOf(23L), numbers.get(0));
+    assertEquals(Double.valueOf(25.10), numbers.get(1));
+    assertEquals(Byte.valueOf((byte) 20), numbers.get(2));
+    assertEquals(3, numbers.size());
   }
 
   /**
@@ -742,14 +811,14 @@ public final class BlackthorneTest
     reader.setErrorHandler(handler);
     reader.parse(resource("choices2.xml"));
 
-    Assertions.assertFalse(handler.failed());
-    Assertions.assertEquals(0, this.errors.size());
+    assertFalse(handler.failed());
+    assertEquals(0, this.errors.size());
 
     final var numbers = handler.result().get();
-    Assertions.assertEquals(BigInteger.valueOf(23L), numbers.get(0));
-    Assertions.assertEquals(Double.valueOf(25.10), numbers.get(1));
-    Assertions.assertEquals(Byte.valueOf((byte) 20), numbers.get(2));
-    Assertions.assertEquals(3, numbers.size());
+    assertEquals(BigInteger.valueOf(23L), numbers.get(0));
+    assertEquals(Double.valueOf(25.10), numbers.get(1));
+    assertEquals(Byte.valueOf((byte) 20), numbers.get(2));
+    assertEquals(3, numbers.size());
   }
 
   /**
@@ -783,16 +852,16 @@ public final class BlackthorneTest
     reader.setErrorHandler(handler);
     reader.parse(resource("choices0.xml"));
 
-    Assertions.assertFalse(handler.failed());
-    Assertions.assertEquals(0, this.errors.size());
+    assertFalse(handler.failed());
+    assertEquals(0, this.errors.size());
 
     final var numbers = handler.result().get();
-    Assertions.assertEquals(Double.valueOf(46.0), numbers.get(0).doubleValue());
-    Assertions.assertEquals(
+    assertEquals(Double.valueOf(46.0), numbers.get(0).doubleValue());
+    assertEquals(
       Double.valueOf(50.20),
       numbers.get(1).doubleValue());
-    Assertions.assertEquals(Double.valueOf(20.0), numbers.get(2).doubleValue());
-    Assertions.assertEquals(3, numbers.size());
+    assertEquals(Double.valueOf(20.0), numbers.get(2).doubleValue());
+    assertEquals(3, numbers.size());
   }
 
   private static final class IntHandler implements BTElementHandlerType<Object, BigInteger>
@@ -1258,8 +1327,8 @@ public final class BlackthorneTest
         );
       });
 
-    Assertions.assertEquals(SAXParseException.class, ex.getCause().getClass());
-    Assertions.assertEquals(2, ex.errors().size());
+    assertEquals(SAXParseException.class, ex.getCause().getClass());
+    assertEquals(2, ex.errors().size());
   }
 
   /**
@@ -1288,9 +1357,9 @@ public final class BlackthorneTest
     reader.setErrorHandler(handler);
     reader.parse(resource("intA.xml"));
 
-    Assertions.assertFalse(handler.failed());
-    Assertions.assertEquals(0, this.errors.size());
-    Assertions.assertEquals(BigInteger.valueOf(23L), handler.result().get());
+    assertFalse(handler.failed());
+    assertEquals(0, this.errors.size());
+    assertEquals(BigInteger.valueOf(23L), handler.result().get());
   }
 
   /**
@@ -1316,9 +1385,9 @@ public final class BlackthorneTest
     reader.setErrorHandler(handler);
     reader.parse(resource("string.xml"));
 
-    Assertions.assertFalse(handler.failed());
-    Assertions.assertEquals(0, this.errors.size());
-    Assertions.assertEquals("This is some text.", handler.result().get());
+    assertFalse(handler.failed());
+    assertEquals(0, this.errors.size());
+    assertEquals("This is some text.", handler.result().get());
   }
 
   /**
@@ -1344,9 +1413,9 @@ public final class BlackthorneTest
     reader.setErrorHandler(handler);
     reader.parse(resource("string.xml"));
 
-    Assertions.assertFalse(handler.failed());
-    Assertions.assertEquals(0, this.errors.size());
-    Assertions.assertEquals("This is some text.", handler.result().get());
+    assertFalse(handler.failed());
+    assertEquals(0, this.errors.size());
+    assertEquals("This is some text.", handler.result().get());
   }
 
   /**
@@ -1375,9 +1444,9 @@ public final class BlackthorneTest
     reader.setErrorHandler(handler);
     reader.parse(resource("string.xml"));
 
-    Assertions.assertFalse(handler.failed());
-    Assertions.assertEquals(0, this.errors.size());
-    Assertions.assertEquals(
+    assertFalse(handler.failed());
+    assertEquals(0, this.errors.size());
+    assertEquals(
       "This is some text.",
       handler.result().get().getMessage());
   }
@@ -1405,9 +1474,9 @@ public final class BlackthorneTest
     reader.setErrorHandler(handler);
     reader.parse(resource("string.xml"));
 
-    Assertions.assertFalse(handler.failed());
-    Assertions.assertEquals(0, this.errors.size());
-    Assertions.assertEquals(
+    assertFalse(handler.failed());
+    assertEquals(0, this.errors.size());
+    assertEquals(
       "This is some text.",
       handler.result().get().getMessage());
   }
@@ -1435,10 +1504,110 @@ public final class BlackthorneTest
     reader.setErrorHandler(handler);
     reader.parse(resource("stringEmpty.xml"));
 
-    Assertions.assertFalse(handler.failed());
-    Assertions.assertEquals(0, this.errors.size());
-    Assertions.assertEquals(
+    assertFalse(handler.failed());
+    assertEquals(0, this.errors.size());
+    assertEquals(
       "",
       handler.result().get().getMessage());
+  }
+
+  /**
+   * The oneOf handler works.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testOneOf0()
+    throws Exception
+  {
+    final var choiceName =
+      BTQualifiedName.of("urn:tests", "choice");
+    final var stringName =
+      BTQualifiedName.of("urn:tests", "string");
+    final var intName =
+      BTQualifiedName.of("urn:tests", "int");
+    final var doubleName =
+      BTQualifiedName.of("urn:tests", "double");
+
+    final Map<BTQualifiedName, BTElementHandlerConstructorType<?, ? extends Object>> choices =
+      Map.ofEntries(
+        Map.entry(
+          intName,
+          IntHandler::new
+        ),
+        Map.entry(
+          doubleName,
+          DoubleHandler::new
+        ),
+        Map.entry(
+          stringName,
+          Blackthorne.forScalarString(stringName)
+        )
+      );
+
+    final var handler =
+      BTContentHandler.<Object>builder()
+        .addHandler(choiceName, Blackthorne.forOneOf(choices))
+        .build(URI.create("urn:text"), this::logError);
+
+    final var reader = createReader();
+    reader.setContentHandler(handler);
+    reader.setErrorHandler(handler);
+    reader.parse(resource("choice0.xml"));
+
+    assertFalse(handler.failed());
+    assertEquals(0, this.errors.size());
+    assertEquals(BigInteger.valueOf(23), handler.result().orElseThrow());
+  }
+
+  /**
+   * The oneOf handler works.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testOneOf1()
+    throws Exception
+  {
+    final var choiceName =
+      BTQualifiedName.of("urn:tests", "choice");
+    final var stringName =
+      BTQualifiedName.of("urn:tests", "string");
+    final var intName =
+      BTQualifiedName.of("urn:tests", "int");
+    final var doubleName =
+      BTQualifiedName.of("urn:tests", "double");
+
+    final Map<BTQualifiedName, BTElementHandlerConstructorType<?, ? extends Object>> choices =
+      Map.ofEntries(
+        Map.entry(
+          intName,
+          IntHandler::new
+        ),
+        Map.entry(
+          doubleName,
+          DoubleHandler::new
+        ),
+        Map.entry(
+          stringName,
+          Blackthorne.forScalarString(stringName)
+        )
+      );
+
+    final var handler =
+      BTContentHandler.<Object>builder()
+        .addHandler(choiceName, Blackthorne.forOneOf(choices))
+        .build(URI.create("urn:text"), this::logError);
+
+    final var reader = createReader();
+    reader.setContentHandler(handler);
+    reader.setErrorHandler(handler);
+    reader.parse(resource("choice1.xml"));
+
+    assertFalse(handler.failed());
+    assertEquals(0, this.errors.size());
+    assertEquals(Double.valueOf(25.10), handler.result().orElseThrow());
   }
 }

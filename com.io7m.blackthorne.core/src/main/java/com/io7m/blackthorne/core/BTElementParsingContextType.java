@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020 Mark Raynsford <code@io7m.com> https://www.io7m.com
+ * Copyright © 2019 Mark Raynsford <code@io7m.com> https://www.io7m.com
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,17 +14,29 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
+package com.io7m.blackthorne.core;
+
+import org.xml.sax.SAXParseException;
+import org.xml.sax.ext.Locator2;
+
 /**
- * Blackthorne JXE integration.
+ * The context of a parsing operation.
  */
 
-module com.io7m.blackthorne.jxe
+public interface BTElementParsingContextType
 {
-  requires static org.osgi.annotation.bundle;
-  requires static org.osgi.annotation.versioning;
+  /**
+   * @return The current SAX document locator
+   */
 
-  requires com.io7m.blackthorne.core;
-  requires com.io7m.jxe.core;
+  Locator2 documentLocator();
 
-  exports com.io7m.blackthorne.jxe;
+  /**
+   * @param e The exception cause
+   *
+   * @return A SAX parse exception based on the given exception
+   */
+
+  SAXParseException parseException(Exception e);
 }

@@ -19,40 +19,41 @@
 
   <!-- Function.identity() doesn't allow for variance. -->
   <Match>
-    <Class name="com.io7m.blackthorne.api.Blackthorne"/>
+    <Class name="com.io7m.blackthorne.core.Blackthorne"/>
     <Method name="widen"/>
     <Bug pattern="FII_USE_FUNCTION_IDENTITY"/>
   </Match>
 
   <!-- Safe. -->
   <Match>
-    <Class name="com.io7m.blackthorne.api.BTStackHandler"/>
+    <Class name="com.io7m.blackthorne.core.internal.BTStackHandler"/>
     <Bug pattern="FORMAT_STRING_MANIPULATION"/>
   </Match>
 
   <!-- Used to assist with type inference. -->
   <Match>
-    <Class name="com.io7m.blackthorne.api.BTContentHandler"/>
+    <Class name="com.io7m.blackthorne.core.internal.BTContentHandler"/>
     <Method name="builder"/>
     <Bug pattern="UP_UNUSED_PARAMETER"/>
   </Match>
 
   <!-- This class is entirely convenience methods. -->
   <Match>
-    <Class name="com.io7m.blackthorne.api.Blackthorne"/>
+    <Class name="com.io7m.blackthorne.core.Blackthorne"/>
     <Bug pattern="OPM_OVERLY_PERMISSIVE_METHOD"/>
   </Match>
 
   <!-- Simply wrong. -->
   <Match>
-    <Class name="com.io7m.blackthorne.api.BTStackHandler$StackElement"/>
+    <Class
+      name="com.io7m.blackthorne.core.internal.BTStackHandler$StackElement"/>
     <Bug pattern="FCBL_FIELD_COULD_BE_LOCAL"/>
   </Match>
 
   <Match>
     <Or>
-      <Class name="com.io7m.blackthorne.api.BTParseError"/>
-      <Class name="com.io7m.blackthorne.api.BTQualifiedName"/>
+      <Class name="com.io7m.blackthorne.core.BTParseError"/>
+      <Class name="com.io7m.blackthorne.core.BTQualifiedName"/>
     </Or>
   </Match>
 
@@ -63,14 +64,20 @@
 
   <!-- JXE prevents XXE issues. -->
   <Match>
-    <Class name="com.io7m.blackthorne.api.Blackthorne"/>
+    <Class name="com.io7m.blackthorne.core.Blackthorne"/>
     <Bug pattern="XXE_XMLREADER"/>
   </Match>
 
   <!-- Don't serialize exceptions. Deal with it. -->
   <Match>
-    <Class name="com.io7m.blackthorne.api.BTException"/>
+    <Class name="com.io7m.blackthorne.core.BTException"/>
     <Bug pattern="SE_BAD_FIELD"/>
+  </Match>
+
+  <!-- The interface exists to be implemented. -->
+  <Match>
+    <Class name="com.io7m.blackthorne.core.BTException"/>
+    <Bug pattern="SCII_SPOILED_CHILD_INTERFACE_IMPLEMENTOR"/>
   </Match>
 
   <Match>

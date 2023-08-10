@@ -16,7 +16,7 @@
 
 module com.io7m.blackthorne.tests
 {
-  requires com.io7m.blackthorne.api;
+  requires com.io7m.blackthorne.core;
   requires com.io7m.blackthorne.jxe;
 
   requires transitive org.junit.jupiter.api;

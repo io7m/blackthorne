@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020 Mark Raynsford <code@io7m.com> https://www.io7m.com
+ * Copyright © 2019 Mark Raynsford <code@io7m.com> https://www.io7m.com
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,17 +14,25 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
+package com.io7m.blackthorne.core;
+
 /**
- * Blackthorne JXE integration.
+ * A specification of whether or not unrecognized elements should be ignored. For an ignored element
+ * {@code E}, all descendants of {@code E} are also ignored.
  */
 
-module com.io7m.blackthorne.jxe
+public enum BTIgnoreUnrecognizedElements
 {
-  requires static org.osgi.annotation.bundle;
-  requires static org.osgi.annotation.versioning;
+  /**
+   * Unrecognized elements will be ignored.
+   */
 
-  requires com.io7m.blackthorne.core;
-  requires com.io7m.jxe.core;
+  IGNORE_UNRECOGNIZED_ELEMENTS,
 
-  exports com.io7m.blackthorne.jxe;
+  /**
+   * Unrecognized elements will not be ignored.
+   */
+
+  DO_NOT_IGNORE_UNRECOGNIZED_ELEMENTS
 }
