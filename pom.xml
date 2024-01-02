@@ -30,10 +30,10 @@
   </modules>
 
   <properties>
-    <com.io7m.junit.version>5.10.0</com.io7m.junit.version>
+    <com.io7m.junit.version>5.10.1</com.io7m.junit.version>
     <com.io7m.jxe.version>1.0.2</com.io7m.jxe.version>
     <io7m.api.previousVersion>2.0.0</io7m.api.previousVersion>
-    <jqwik.version>1.7.4</jqwik.version>
+    <jqwik.version>1.8.2</jqwik.version>
   </properties>
 
   <licenses>
@@ -95,7 +95,7 @@
       <dependency>
         <groupId>ch.qos.logback</groupId>
         <artifactId>logback-classic</artifactId>
-        <version>1.4.11</version>
+        <version>1.4.14</version>
       </dependency>
       <dependency>
         <groupId>com.io7m.jlexing</groupId>
@@ -105,7 +105,7 @@
       <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-api</artifactId>
-        <version>2.0.7</version>
+        <version>2.0.10</version>
       </dependency>
       <dependency>
         <groupId>com.io7m.junreachable</groupId>
@@ -144,7 +144,7 @@
       <dependency>
         <groupId>nl.jqno.equalsverifier</groupId>
         <artifactId>equalsverifier</artifactId>
-        <version>3.15.1</version>
+        <version>3.15.5</version>
       </dependency>
       <dependency>
         <groupId>org.junit.jupiter</groupId>
@@ -176,17 +176,17 @@
       <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-core</artifactId>
-        <version>5.4.0</version>
+        <version>5.8.0</version>
       </dependency>
       <dependency>
         <groupId>net.bytebuddy</groupId>
         <artifactId>byte-buddy-agent</artifactId>
-        <version>1.14.5</version>
+        <version>1.14.11</version>
       </dependency>
       <dependency>
         <groupId>net.bytebuddy</groupId>
         <artifactId>byte-buddy</artifactId>
-        <version>1.14.5</version>
+        <version>1.14.11</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
